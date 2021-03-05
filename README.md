@@ -3,8 +3,9 @@
 
 * Regristration screen
 * Log in screen
-* Profile screen
-* Create/join game screen (match history)
+* Profile screen (match history)
+* Create/join game screen 
+* Game board screen
 
 ### The application database is:
 * Firebase (enables persistant data)
