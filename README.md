@@ -6,7 +6,9 @@ The application consists of the following screens:
 * Profile screen
 * Create/join game screen (match history)
 
-- Firebase is used as database.
+The application database is:
+* Firebase (enables persistant data)
 
-- SocketIO is used for websocket and real time update.
+The application websocket library is:
+* SocketIO (enables real time updates)
 
