@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "scripts": {
+    "client:build": "cd client && npm run build",
+    "server:start": "cd server && npm run start",
+    "start": "npm run client:build && npm run server:start",
+    "client:install": "cd client && npm install",
+    "server:install": "cd server && npm install",
+    "install": "npm run client:install && npm run server:install",
+    "client:lint": "cd client && npm run lint",
+    "server:lint": "cd server && npm run lint",
+    "lint": "npm run client:lint && npm run server:lint",
+    "client:lint:fix": "cd client && npm run lint:fix",
+    "server:lint:fix": "cd server && npm run lint:fix",
+    "lint:fix": "npm run client:lint:fix && npm run server:lint:fix"
+  },
+  "dependencies": {}
+}
