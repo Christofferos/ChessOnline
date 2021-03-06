@@ -6,17 +6,6 @@ betterLogging(console, {
   color: Theme.green,
 });
 
-// FIREBASE DATABSE:
-const firebaseConfig = {
-  apiKey: 'AIzaSyCZZR1B2MX_vNMuH41WCez1oQkFd4A_mCE',
-  authDomain: 'chessonlinepro.firebaseapp.com',
-  projectId: 'chessonlinepro',
-  storageBucket: 'chessonlinepro.appspot.com',
-  messagingSenderId: '59988433154',
-  appId: '1:59988433154:web:b43f906e670538ee548a1b',
-  measurementId: 'G-DTBVHHB8X8',
-};
-
 const path = require('path'); // helper library for resolving relative paths
 const expressSession = require('express-session');
 const socketIOSession = require('express-socket.io-session');
@@ -52,14 +41,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Setup session
 const session = expressSession({
-  secret: 'Secret password?',
-  assistantId: -1,
-  assistantName: '',
+  secret: 'Super secret! Shh! Do not tell anyone...',
   resave: true,
   saveUninitialized: true,
 });
 app.use(session);
-
 io.use(
   socketIOSession(session, {
     autoSave: true,
@@ -77,27 +63,27 @@ This will serve static files from the public directory, starting with index.html
 
 // Bind REST controllers to /api/*
 const auth = require('./controllers/auth.controller.js');
-const timeSlot = require('./controllers/timeSlot.controller.js');
-const assistant = require('./controllers/assistant.controller.js');
+const chat = require('./controllers/chat.controller.js');
 
 app.use('/api', auth.router);
-app.use('/api', auth.requireAuth, timeSlot.router);
-app.use('/api', assistant.router);
+// All chat endpoints require the user to be authenticated
+app.use('/api', auth.requireAuth, chat.router);
 
 // Init model
 const model = require('./model.js');
 
 model.init({ io });
-model.addAssistant(0, 'kri');
-model.addAssistant(1, 'amanda');
-model.addAssistant(2, 'anna');
-model.addAssistant(3, 'solbritt');
+model.addRoom('test1'); // demo call
+model.addRoom('test2'); // demo call
 
 // Handle connected socket.io sockets
-io.on('connection', (/* socket */) => {
+io.on('connection', (socket) => {
   // This function serves to bind socket.io connections to user models
-  /* if (socket.handshake.session.userID
-    && model.findUser(socket.handshake.session.userID) !== undefined) {
+
+  if (
+    socket.handshake.session.userID
+    && model.findUser(socket.handshake.session.userID) !== undefined
+  ) {
     // If the current user already logged in and then reloaded the page
     model.updateUserSocket(socket.handshake.session.userID, socket);
   } else {
@@ -106,7 +92,7 @@ io.on('connection', (/* socket */) => {
       if (err) console.error(err);
       else console.debug(`Saved socketID: ${socket.handshake.session.socketID}`);
     });
-  } */
+  }
 });
 
 // Start server

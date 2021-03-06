@@ -1,20 +1,18 @@
-const TimeSlot = require('./models/timeslot.model');
-const Assistant = require('./models/assistant.model');
-const db = require('./database');
+const Room = require('./models/room.model');
+const User = require('./models/user.model');
 
 /**
  * rooms & users are effectively hash maps with the name of the entry serving as a unique key.
  */
-let timeSlots = {};
-let timeSlotId = 0;
-let assistants = {};
+let rooms = {};
+let users = {};
 
 /**
  * unregisteredSockets is used as a temporary pool of sockets
  * that belonging to users who are yet to login.
  */
-/* const nextUnregisteredSocketID = 0;
-const unregisteredSockets = {}; */
+let nextUnregisteredSocketID = 0;
+let unregisteredSockets = {};
 
 // Will be initialized in the exports.init function
 exports.io = undefined;
@@ -33,65 +31,46 @@ exports.init = ({ io }) => {
  * @param {SocketIO.Socket} socket - The socket.io socket to add to the pool.
  * @returns {Number} The ID of the socket in the pool of unregistered sockets.
  */
-/* exports.addUnregisteredSocket = (socket) => {
+exports.addUnregisteredSocket = (socket) => {
   const socketID = nextUnregisteredSocketID;
   nextUnregisteredSocketID += 1;
 
   unregisteredSockets[socketID] = socket;
   return socketID;
 };
-
 const assignUnregisteredSocket = (socketID) => {
   const socket = unregisteredSockets[socketID];
   unregisteredSockets = Object.keys(unregisteredSockets)
     .filter((sockID) => sockID !== socketID)
-    .reduce(
-      (res, sockID) => ({ ...res, [sockID]: unregisteredSockets[sockID] }),
-      {}
-    );
+    .reduce((res, sockID) => ({ ...res, [sockID]: unregisteredSockets[sockID] }), {});
 
   return socket;
-}; */
-
-/**
- * Add a time slot & push it out to all connected clients
- * @param {String} timeSlot - The time slot to add.
- * @returns {void}
- */
-exports.addTimeSlot = (assistantId, time) => {
-  const newTimeSlot = new TimeSlot(assistantId, timeSlotId, time, '');
-  timeSlots = {
-    ...timeSlots,
-    [timeSlotId]: newTimeSlot,
-  };
-  console.log('added');
-  console.log(assistantId, time);
-
-  timeSlotId += 1;
-  console.log('timeSlotId: ', timeSlotId);
-  exports.io.emit('timeSlotAdded', newTimeSlot);
-
-  db.serialize(() => {
-    const statement = db.prepare('INSERT INTO timeslots VALUES (?, ?, ?, ?)');
-    statement.run(timeSlotId, assistantId, time, '');
-    statement.finalize();
-  });
-
-  return newTimeSlot;
 };
 
 /**
- * Add an assistant to the datastructure assistants.
- * @param {int} assistantId - id of the assistant to add.
- * @param {String} name - name of the assistant to add.
+ * Add a message to a room & push out the message to all connected clients
+ * @param {String} roomName - The name of the room to add the message to.
+ * @param {String} message - The message to add.
  * @returns {void}
  */
-exports.addAssistant = (assistantId, name) => {
-  const newAssistant = new Assistant(assistantId, name);
-  assistants = {
-    ...assistants,
-    [assistantId]: newAssistant,
-  };
+exports.addMessage = (roomName, message) => {
+  exports.findRoom(roomName).addMessage(message);
+  exports.io.in(roomName).emit('msg', message);
+  console.log(roomName, message);
+};
+
+/**
+ * Creates a user with the given name.
+ * @param {String} name - The name of the user.
+ * @param {Number} socketID - An optional ID of a socket.io socket in the unregistered sockets pool.
+ * @see model.addUnregisteredSocket
+ * @returns {void}
+ */
+exports.addUser = (name, socketID = undefined) => {
+  users[name] = new User(name);
+  if (socketID !== undefined) {
+    users[name].socket = assignUnregisteredSocket(socketID);
+  }
 };
 
 /**
@@ -100,133 +79,57 @@ exports.addAssistant = (assistantId, name) => {
  * @param {SocketIO.Socket} socket - A socket.io socket.
  * @returns {void}
  */
-/* exports.updateUserSocket = (name, socket) => {
+exports.updateUserSocket = (name, socket) => {
   users[name].socket = socket;
-}; */
+};
 
 /**
  * Returns the user object with the given name.
- * @param {int} assistantId - id of the assistant to find.
- * @returns {Assistant}
+ * @param {String} name - The name of the user.
+ * @returns {User}
  */
-exports.findAssistant = (assistantId) => {
-  if (Object.values(assistants)[assistantId] !== null) {
-    return Object.values(assistants)[assistantId];
-  }
-  return undefined;
-};
+exports.findUser = (name) => users[name];
 
 /**
- * Returns all the Assistants.
- * @returns {Assistants[]}
- */
-exports.getAssistants = () => Object.values(assistants);
-
-/**
- * Returns all the TimeSlots.
- * @returns {TimeSlot[]}
- */
-exports.getTimeSlot = (id) => {
-  console.log(id);
-  if (Object.values(timeSlots)[id] !== null) {
-    exports.io.emit('timeSlotReserved', Object.values(timeSlots)[id]);
-    return Object.values(timeSlots)[id];
-  }
-  return undefined;
-};
-
-exports.cancelReservedTime = (id) => {
-  exports.io.emit('cancelReservedTime', Object.values(timeSlots)[id]);
-  timeSlots[id].bookedBy = '';
-};
-
-exports.checkTimeSlotStatus = (id) => {
-  // console.log('Booked: ', Object.values(timeSlots)[id].bookedBy);
-  if (Object.values(timeSlots)[id].bookedBy === '') {
-    // console.log('free: ');
-    return 'free';
-  }
-  if (Object.values(timeSlots)[id].bookedBy === 'Reserved!') {
-    // console.log('reservered: ');
-    return 'reserved';
-  }
-  // console.log('taken: ');
-  return 'taken';
-};
-
-exports.bookTimeSlot = (studentName, id) => {
-  if (Object.values(timeSlots)[id] !== undefined) {
-    Object.values(timeSlots)[id].bookedBy = studentName;
-
-    db.serialize(() => {
-      const statement = db.prepare('UPDATE timeslots SET bookedBy = (?) WHERE id = (?)');
-      statement.run(studentName, id);
-      statement.finalize();
-    });
-
-    exports.io.emit('timeSlotTaken', Object.values(timeSlots)[id]);
-  } else {
-    console.log('Failed to book timeSlot');
-  }
-};
-
-/**
- * Returns all the TimeSlots.
- * @returns {TimeSlot[]}
- */
-exports.getTimeSlots = () => Object.values(timeSlots);
-
-/**
- * Returns all the TimeSlots of a given assistant.
- * @param {int} assistantId - id of the assistant.
- * @returns {TimeSlot[]}
- */
-exports.getAssistantTimeSlots = (assistantId) => {
-  console.log('');
-  return Object.values(timeSlots).filter((timeSlot) => {
-    console.log('');
-    return timeSlot.assistantId === assistantId;
-  });
-};
-
-/**
- * Removes the timeslot object with the matching id.
- * @param {int} id - The id of the time slot.
+ * Removes the user object with the matching name.
+ * @param {String} name - The name of the user
  * @returns {void}
  */
-exports.removeTimeSlots = (ids, assistantId) => {
-  timeSlots = Object.values(timeSlots) // export time slot?
-    .filter((timeSlot) => !ids.includes(timeSlot.id) || timeSlot.assistantId !== assistantId)
-    .reduce((res, timeSlot) => ({ ...res, [timeSlot.id]: timeSlot }), {});
-
-  exports.io.emit('remainingTimeSlots', timeSlots); // RemainingTimeSlots
-
-  db.serialize(() => {
-    const statement = db.prepare('DELETE FROM timeslots WHERE id = (?) AND assistantId= (?)');
-    ids.map((id) => statement.run(id, assistantId));
-    statement.finalize();
-    return '';
-  });
-  return timeSlots;
-};
-
-exports.authorizedToRemoveTimeSlots = (ids, assistantId) => {
-  let result = true;
-  console.log('ids: ', ids);
-  Object.values(timeSlots).forEach((timeSlot) => {
-    console.log('timeSlot: ', timeSlot);
-    console.log('assistantId: ', assistantId);
-    if (ids.includes(timeSlot.id) && timeSlot.assistantId !== assistantId) {
-      console.log('Condition met!');
-      result = false;
-    }
-  });
-  return result;
+exports.removeUser = (name) => {
+  users = Object.values(users)
+    .filter((user) => user.name !== name)
+    .reduce((res, user) => ({ ...res, [user.name]: user }), {});
 };
 
 /**
- * Return the time slot object with the matching name.
- * @param {String} id - The id of the time slot.
+ * Creates a room with the given name.
+ * @param {String} name - The name of the room.
+ * @returns {void}
+ */
+exports.addRoom = (name) => {
+  rooms[name] = new Room(name);
+};
+
+/**
+ * Returns all the Rooms.
+ * @returns {Room[]}
+ */
+exports.getRooms = () => Object.values(rooms);
+
+/**
+ * Removes the room object with the matching name.
+ * @param {String} name - The name of the room.
+ * @returns {void}
+ */
+exports.removeRoom = (name) => {
+  rooms = Object.values(rooms)
+    .filter((room) => room.name !== name)
+    .reduce((res, room) => ({ ...res, [room.name]: room }), {});
+};
+
+/**
+ * Return the room object with the matching name.
+ * @param {String} name - The name of the room.
  * @returns {Room}
  */
-exports.findTimeSlot = (id) => timeSlots[id];
+exports.findRoom = (name) => rooms[name];

@@ -7,54 +7,9 @@ const router = express.Router();
  * Fetch the list the currently active rooms
  * @returns {void}
  */
-router.get('/timeSlots', (req, res) => {
-  console.log('Request cookie in timeSlots: ', req.headers.cookie);
-  const timeSlots = model.getTimeSlots();
-  res.status(200).json({ list: timeSlots });
-});
-
-router.post('/reserveTimeSlot', (req, res) => {
-  const timeSlot = model.getTimeSlot(req.body.timeSlotId);
-  timeSlot.bookedBy = 'Reserved!';
-  res.status(200).json({ timeSlot });
-});
-
-router.get('/getAssistantTimeSlots', (req, res) => {
-  res.status(200).json({ list: model.getAssistantTimeSlots(req.session.assistantId) });
-});
-
-router.post('/addTimeSlot', (req, res) => {
-  res.status(200).json({ newTimeSlot: model.addTimeSlot(req.session.assistantId, req.body.time) });
-  // .end()
-});
-
-router.put('/cancelReservedTime', (req, res) => {
-  model.cancelReservedTime(req.body.timeSlotId);
-  res.status(200).end();
-});
-
-router.put('/confirmBookedTime', (req, res) => {
-  model.bookTimeSlot(req.body.studentName, req.body.timeSlotId);
-  res.status(200).end();
-});
-
-router.post('/checkTimeSlotStatus', (req, res) => {
-  const status = model.checkTimeSlotStatus(req.body.timeSlotId);
-  console.log('status: ', status);
-  if (status === 'free') res.status(200).json({ status });
-  else res.status(403).json({ status });
-});
-
-router.delete('/removeTimeSlots', (req, res) => {
-  const success = model.authorizedToRemoveTimeSlots(
-    req.body.timeSlotsToRemove,
-    req.session.assistantId,
-  );
-  const remainingTimeSlots = model.removeTimeSlots(
-    req.body.timeSlotsToRemove,
-    req.session.assistantId,
-  );
-  res.status(200).json({ success, remainingTimeSlots });
+router.get('/roomList', (req, res) => {
+  const rooms = model.getRooms();
+  res.status(200).json({ list: rooms });
 });
 
 /**
@@ -73,6 +28,7 @@ router.get('/room/:room/join', (req, res) => {
     });
     return;
   }
+
   const user = model.findUser(req.session.userID);
 
   // Join the right socket.io room

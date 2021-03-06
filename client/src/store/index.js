@@ -8,9 +8,6 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     isAuthenticated: false,
-    cookie: {
-      username: '',
-    },
   },
   mutations: {
     setIsAuthenticated(store, isAuthenticated) {
@@ -18,7 +15,7 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    /* Write all socket io broadcasting in here? */
   },
-  modules: {},
+  modules: {
+  },
 });
