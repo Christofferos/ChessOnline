@@ -1,28 +1,30 @@
-# Lab 4
+# ChessOnline
 
-## För att komma igång
+### The application consists of the following screens:
 
-1. [Installera node 10.13](https://nodejs.org/en/) eller senare.
-2. Klona ned det här repot.
-3. Kör `npm install` inuti repo mappen.
-4. Kör `npm start` inuti repo mappen.
-5. Navigera till `localhost:8989` i din webbläsare.
+- Regristration screen
+- Log in screen
+- Profile screen (match history)
+- Create/join game screen
+- Game board screen
 
-Fortsätt sedan att läsa README filerna för [server](./server/README.md) & [client](./client/README.md).
+### The application database is:
 
-## General instructions
+- Firebase (enables persistant data)
 
-__Note:__ A prerequisite for the javascript labs is that you have the latest [`Node LTS`](https://nodejs.org/en/) installed on your machine.
+### The application websocket library is:
 
-In this and all following javascript labs it is required of you to follow these steps in your terminal, in order to get up and running:  
+- SocketIO (enables real time updates)
 
-1. [Clone down this repository on to your system.](https://help.github.com/en/articles/cloning-a-repository)
-2. [Navigate to the repository on your system, using the terminal.](https://lmgtfy.com/?q=how+to+navigate+using+terminal)
-3. Run this command `npm install` by typing it in the terminal and pressing the `Enter` key.
+### The application uses server side authentication with:
 
-Before you present a lab make sure that when you run `npm run lint` no error show up. If there are errors make sure you fix them before presenting your lab. These errors can quickly pile up so make sure you regularly run `npm run lint` and fix the errors straight away. This way you wont have to go through fixing hundreds of errors the day before the presentation.
+- CA-signed certificate (Secure connection with HTTPS)
 
-__Note:__ Most common errors can be automatically fixed by running `npm run lint:fix`
+### The application remembers your game:
+
+- If the server crashes or goes down, your game will persist and you can return to the game as it
+  was when the server is goes back online.
 
 ## Commands
+
 Open Markdown in VSC: Ctrl + Shift + V
