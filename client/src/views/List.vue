@@ -2,11 +2,35 @@
   <div class="container">
     <section class="col-md-10 col-md-offset-1">
       <div class="row" style="text-align: center;">
-        <h1>Queues</h1>
+        <h1 style="color: white">Play Chess</h1>
       </div>
 
       <div class="row">
-        <div class="well" v-for="room in rooms" @click="redirect(room.name)" :key="room.name">
+        <div class="row" style="text-align: center;">
+          <input class="well btn btn-default button" type="button" value="Create Game" />
+        </div>
+        <div class="row" style="text-align: center;">
+          <input class="well btn btn-default button" type="button" value="Join Game" />
+        </div>
+
+        <div class="row" style="text-align: center; margin-top: 10px;">
+          <h3 style="color: white">Players Online: 0</h3>
+
+          <div class="row" style="text-align: center; ">
+            <input class="well btn btn-default button" type="button" value="Find Opponent" />
+          </div>
+        </div>
+
+        <div class="row" style="text-align: center; margin-top: 10px;">
+          <h3 style="color: white">Active Games:</h3>
+        </div>
+        <div
+          class="row well button"
+          v-for="room in rooms"
+          @click="redirect(room.name)"
+          :key="room.name"
+          style="margin: auto auto 5px auto"
+        >
           <div class="row" style="text-align: center;">
             <h4>
               <span>{{ room.name }}</span>
@@ -32,7 +56,7 @@ export default {
   },
   created() {
     fetch('/api/roomList')
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((data) => {
         this.rooms = data.list;
       })
@@ -40,3 +64,19 @@ export default {
   },
 };
 </script>
+
+<style>
+.button {
+  background: #7fa650;
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: white;
+  width: 350px;
+  border: none;
+}
+.button:hover {
+  background: #95bb4a;
+  color: white;
+}
+</style>

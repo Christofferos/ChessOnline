@@ -3,6 +3,8 @@ import VueRouter from 'vue-router';
 import ListView from '../views/List.vue';
 import RoomView from '../views/Room.vue';
 import LoginView from '../views/Login.vue';
+import ProfileView from '../views/Profile.vue';
+
 import store from '../store';
 
 Vue.use(VueRouter);
@@ -12,6 +14,7 @@ const routes = [
   { path: '/list', component: ListView },
   { path: '/room/:roomName', component: RoomView },
   { path: '/login', component: LoginView },
+  { path: '/profile', component: ProfileView },
 ];
 
 const router = new VueRouter({

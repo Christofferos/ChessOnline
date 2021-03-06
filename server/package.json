@@ -27,6 +27,6 @@
     "trailingSpace": "none",
     "trailingComma": "all",
     "printWidth": 99,
-    "arrowParens": "always"
+    "arrowParens": "avoid"
   }
 }

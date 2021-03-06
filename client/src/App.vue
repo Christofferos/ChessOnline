@@ -15,21 +15,25 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <div
-            v-on:click="redirect('/list')"
-            class="navbar-brand navbar-brand-centered"
-            style="line-height: 1em; cursor: pointer;"
-          >Example</div>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="navbar-brand-centered">
+        <div
+          class="collapse navbar-collapse"
+          id="navbar-brand-centered"
+          style="text-align: center;"
+        >
           <ul class="nav navbar-nav">
             <li v-on:click="redirect('/login')">
-              <a style="cursor: pointer;">Admin</a>
+              <a style="cursor: pointer; "
+                ><img src="../public/logoNavbar.png" style="height: 27px"
+              /></a>
+            </li>
+            <li v-on:click="redirect('/login')">
+              <a style="cursor: pointer; line-height: 2;">Profile</a>
             </li>
             <li v-on:click="redirect('/list')">
-              <a style="cursor: pointer;">Rooms</a>
+              <a style="cursor: pointer; line-height: 2">Play Chess</a>
             </li>
           </ul>
         </div>
@@ -57,6 +61,7 @@ body {
   margin: 0;
   padding: 0;
   border: 0;
+  background: #464541;
 }
 
 span.text-blue {

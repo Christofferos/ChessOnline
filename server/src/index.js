@@ -73,22 +73,22 @@ app.use('/api', auth.requireAuth, chat.router);
 const model = require('./model.js');
 
 model.init({ io });
-model.addRoom('test1'); // demo call
-model.addRoom('test2'); // demo call
+model.addRoom('Live Game 1'); // demo call
+model.addRoom('Live Game 2'); // demo call
 
 // Handle connected socket.io sockets
-io.on('connection', (socket) => {
+io.on('connection', socket => {
   // This function serves to bind socket.io connections to user models
 
   if (
-    socket.handshake.session.userID
-    && model.findUser(socket.handshake.session.userID) !== undefined
+    socket.handshake.session.userID &&
+    model.findUser(socket.handshake.session.userID) !== undefined
   ) {
     // If the current user already logged in and then reloaded the page
     model.updateUserSocket(socket.handshake.session.userID, socket);
   } else {
     socket.handshake.session.socketID = model.addUnregisteredSocket(socket);
-    socket.handshake.session.save((err) => {
+    socket.handshake.session.save(err => {
       if (err) console.error(err);
       else console.debug(`Saved socketID: ${socket.handshake.session.socketID}`);
     });
