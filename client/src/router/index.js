@@ -28,6 +28,9 @@ router.beforeEach((to, from, next) => {
   if (store.state.isAuthenticated === false && to.path !== '/login') {
     console.info('Unauthenticated user. Redirecting to login page.');
     next('/login');
+  } else if (store.state.isAuthenticated && to.path === '/login') {
+    console.info('Redirecting to profile page.');
+    next('/profile');
   } else {
     next();
   }

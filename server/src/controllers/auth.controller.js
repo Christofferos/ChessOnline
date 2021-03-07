@@ -49,9 +49,11 @@ router.get('/isAuthenticated', (req, res) => {
  */
 router.post('/authenticate', (req, res) => {
   // Check if the user actually exists instead of creating a new one
-  if (!model.findUser(req.session.userID)) {
+
+  /* if (!model.findUser(req.session.userID)) {
     model.addUser(req.body.username, req.session.socketID);
-  }
+  } */
+  const { username, password } = req.body;
 
   // Update the userID of the currently active session
   req.session.userID = req.body.username;
@@ -65,6 +67,59 @@ router.post('/authenticate', (req, res) => {
   });
 
   res.sendStatus(200);
+
+  /*
+  // Check if the user actually exists instead of creating a new one
+  const { username, password } = req.body;
+
+  db.serialize(() => {
+    const statement = db.prepare('SELECT id, username, password FROM admins WHERE username = (?)');
+    console.log(`${username} ${password}`);
+    statement.get(username, async (err, row) => {
+      if (err) {
+        throw new Error(err);
+      }
+      if (typeof row !== 'undefined') {
+        console.log(`${row.id}: ${row.username}, ${row.password}`);
+        const match = await bcrypt.compare(password, row.password);
+        if (match) {
+          console.log('match');
+          statement.finalize();
+          // Update the userID of the currently active session
+
+          req.session.assistantId = row.id;
+          res.cookie('assistantId', row.id);
+          res.cookie('username', username);
+          console.log('Cookie-username: ', res.cookie.username);
+          console.log('Cookie-assistantID: ', res.cookie.assistantId);
+          console.log('Session::');
+          console.log(req.session);
+          req.session.save((error) => {
+            if (error) {
+              console.error(error);
+              res.sendStatus(401); // 404 maybe
+            } else {
+              console.debug('Saved session');
+            }
+          });
+
+          res.sendStatus(200).send('');
+            .json({
+              assistantId: assistantId,
+              username: username,
+            });
+
+          } else if (!match) {
+            statement.finalize();
+            res.sendStatus(404);
+          }
+        } else {
+          statement.finalize();
+          res.sendStatus(404);
+        }
+      });
+    });
+  */
 });
 
 // TODO: Add 'create account' route.

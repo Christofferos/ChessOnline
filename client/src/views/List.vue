@@ -56,7 +56,7 @@ export default {
   },
   created() {
     fetch('/api/roomList')
-      .then((res) => res.json())
+      .then(res => res.json())
       .then((data) => {
         this.rooms = data.list;
       })

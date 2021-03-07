@@ -23,12 +23,47 @@
       />
       <div id="statusFail" class="badge red"></div>
       <input class="btn btn-default login-button" type="submit" value="Sign in" />
+      <input
+        class="btn btn-default login-button"
+        type="submit"
+        value="Register account"
+        style="margin-top: 20px"
+      />
+    </form>
+
+    <!-- TESTING FIREBASE -->
+    <form @submit.prevent="onSubmit">
+      <div class="form-group">
+        <label>Username</label>
+        <input v-model="form.name" class="form-control" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input v-model="form.password" class="form-control" type="password" required />
+      </div>
+      <button type="submit" class="btn btn-success mt-3">
+        Create User
+      </button>
     </form>
   </div>
 </template>
 
 <script>
+import { reactive } from 'vue';
+import { createUser } from '../../../server/src/database';
+
 export default {
+  setup() {
+    const form = reactive({ name: '', password: '' });
+
+    const onSubmit = async () => {
+      await createUser({ ...form });
+      form.name = '';
+      form.password = '';
+    };
+
+    return { form, onSubmit };
+  },
   name: 'Login',
   components: {},
   data: () => ({

@@ -1,11 +1,14 @@
 const Room = require('./models/room.model');
 const User = require('./models/user.model');
+const LiveGame = require('./models/liveGame.model');
+const db = require('database.js');
 
 /**
  * rooms & users are effectively hash maps with the name of the entry serving as a unique key.
  */
 let rooms = {};
 let users = {};
+const games = [];
 
 /**
  * unregisteredSockets is used as a temporary pool of sockets
@@ -31,21 +34,47 @@ exports.init = ({ io }) => {
  * @param {SocketIO.Socket} socket - The socket.io socket to add to the pool.
  * @returns {Number} The ID of the socket in the pool of unregistered sockets.
  */
-exports.addUnregisteredSocket = (socket) => {
+exports.addUnregisteredSocket = socket => {
   const socketID = nextUnregisteredSocketID;
   nextUnregisteredSocketID += 1;
 
   unregisteredSockets[socketID] = socket;
   return socketID;
 };
-const assignUnregisteredSocket = (socketID) => {
+const assignUnregisteredSocket = socketID => {
   const socket = unregisteredSockets[socketID];
   unregisteredSockets = Object.keys(unregisteredSockets)
-    .filter((sockID) => sockID !== socketID)
+    .filter(sockID => sockID !== socketID)
     .reduce((res, sockID) => ({ ...res, [sockID]: unregisteredSockets[sockID] }), {});
 
   return socket;
 };
+
+const gamesInit = () => {
+  console.log('init games');
+  // Fill games with db data
+  db.serialize(() => {
+    games = [];
+    db.each('SELECT * FROM liveGames', () => {
+      games.push(
+        new LiveGame(row.id, row.gameState, row.player1, row.player2, timeLeft1, timeLeft2),
+      );
+    });
+  });
+};
+gamesInit();
+
+const usersInit = () => {
+  console.log('init users');
+  // Fill users with db data
+  db.serialize(() => {
+    users = [];
+    db.each('SELECT * FROM users', () => {
+      users.push(new User(row.socket, row.currentRoom, row.name));
+    });
+  });
+};
+usersInit();
 
 /**
  * Add a message to a room & push out the message to all connected clients
@@ -88,16 +117,16 @@ exports.updateUserSocket = (name, socket) => {
  * @param {String} name - The name of the user.
  * @returns {User}
  */
-exports.findUser = (name) => users[name];
+exports.findUser = name => users[name];
 
 /**
  * Removes the user object with the matching name.
  * @param {String} name - The name of the user
  * @returns {void}
  */
-exports.removeUser = (name) => {
+exports.removeUser = name => {
   users = Object.values(users)
-    .filter((user) => user.name !== name)
+    .filter(user => user.name !== name)
     .reduce((res, user) => ({ ...res, [user.name]: user }), {});
 };
 
@@ -106,7 +135,7 @@ exports.removeUser = (name) => {
  * @param {String} name - The name of the room.
  * @returns {void}
  */
-exports.addRoom = (name) => {
+exports.addRoom = name => {
   rooms[name] = new Room(name);
 };
 
@@ -121,9 +150,9 @@ exports.getRooms = () => Object.values(rooms);
  * @param {String} name - The name of the room.
  * @returns {void}
  */
-exports.removeRoom = (name) => {
+exports.removeRoom = name => {
   rooms = Object.values(rooms)
-    .filter((room) => room.name !== name)
+    .filter(room => room.name !== name)
     .reduce((res, room) => ({ ...res, [room.name]: room }), {});
 };
 
@@ -132,4 +161,4 @@ exports.removeRoom = (name) => {
  * @param {String} name - The name of the room.
  * @returns {Room}
  */
-exports.findRoom = (name) => rooms[name];
+exports.findRoom = name => rooms[name];

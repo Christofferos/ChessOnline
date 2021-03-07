@@ -17,9 +17,18 @@
            background: #504F4C; border-radius: 5px; padding-bottom: 20px;"
     >
       <h1 style="color: white">Match history:</h1>
-      <div class="row">-</div>
-      <div class="row">-</div>
-      <div class="row">-</div>
+      <table style="width:95%; margin: auto; text-align: center">
+        <!-- Map over history with table rows -->
+        <tr>
+          <th>Player</th>
+          <th>Result</th>
+          <th>Moves</th>
+          <th>Date</th>
+        </tr>
+        <!-- <div class="row">-</div>
+        <div class="row">-</div>
+        <div class="row">-</div> -->
+      </table>
     </div>
   </div>
 </template>

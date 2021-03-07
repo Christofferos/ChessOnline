@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "client:build": "cd client && npm run build",
-    "server:start": "cd server && npm run start",
+    "client": "cd client && npm run build",
+    "server": "cd server && npm run start",
     "start": "npm run client:build && npm run server:start",
     "client:install": "cd client && npm install",
     "server:install": "cd server && npm install",

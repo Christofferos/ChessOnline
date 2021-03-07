@@ -12,15 +12,19 @@
     "@types/express-socket.io-session": "^1.3.1",
     "@types/socket.io": "^2.1.2",
     "better-logging": "^4.4.1",
+    "core-js": "^3.9.1",
     "eslint": "^6.7.2",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
     "express-socket.io-session": "^1.3.5",
+    "firebase": "^8.2.10",
     "nodemon": "^2.0.7",
     "socket.io": "^1.7.4",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.0.2",
+    "vue": "^2.6.12",
+    "vue-router": "^3.5.1"
   },
   "prettier": {
     "singleQuote": true,
