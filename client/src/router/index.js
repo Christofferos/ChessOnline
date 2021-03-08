@@ -4,6 +4,7 @@ import ListView from '../views/List.vue';
 import RoomView from '../views/Room.vue';
 import LoginView from '../views/Login.vue';
 import ProfileView from '../views/Profile.vue';
+import SignUp from '../views/SignUp.vue';
 
 import store from '../store';
 
@@ -15,6 +16,7 @@ const routes = [
   { path: '/room/:roomName', component: RoomView },
   { path: '/login', component: LoginView },
   { path: '/profile', component: ProfileView },
+  { path: '/signUp', component: SignUp },
 ];
 
 const router = new VueRouter({
@@ -25,7 +27,7 @@ const router = new VueRouter({
 
 // Setup Authentication guard
 router.beforeEach((to, from, next) => {
-  if (store.state.isAuthenticated === false && to.path !== '/login') {
+  if (store.state.isAuthenticated === false && to.path !== '/login' && to.path !== '/signUp') {
     console.info('Unauthenticated user. Redirecting to login page.');
     next('/login');
   } else if (store.state.isAuthenticated && to.path === '/login') {

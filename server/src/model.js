@@ -1,14 +1,14 @@
 const Room = require('./models/room.model');
 const User = require('./models/user.model');
 const LiveGame = require('./models/liveGame.model');
-const db = require('database.js');
+const db = require('./database');
 
 /**
  * rooms & users are effectively hash maps with the name of the entry serving as a unique key.
  */
 let rooms = {};
 let users = {};
-const games = [];
+let games = {};
 
 /**
  * unregisteredSockets is used as a temporary pool of sockets
@@ -46,31 +46,35 @@ const assignUnregisteredSocket = socketID => {
   unregisteredSockets = Object.keys(unregisteredSockets)
     .filter(sockID => sockID !== socketID)
     .reduce((res, sockID) => ({ ...res, [sockID]: unregisteredSockets[sockID] }), {});
-
   return socket;
 };
 
 const gamesInit = () => {
-  console.log('init games');
   // Fill games with db data
   db.serialize(() => {
-    games = [];
-    db.each('SELECT * FROM liveGames', () => {
-      games.push(
-        new LiveGame(row.id, row.gameState, row.player1, row.player2, timeLeft1, timeLeft2),
+    games = {};
+    db.each('SELECT * FROM liveGames', (err, row) => {
+      console.log('liveGames: ', row.gameState);
+      games[row.id] = new LiveGame(
+        row.id,
+        row.gameState,
+        row.player1,
+        row.player2,
+        row.timeLeft1,
+        row.timeLeft2,
       );
     });
   });
 };
 gamesInit();
 
-const usersInit = () => {
-  console.log('init users');
+const usersInit = async () => {
   // Fill users with db data
+  console.log('users init');
   db.serialize(() => {
-    users = [];
-    db.each('SELECT * FROM users', () => {
-      users.push(new User(row.socket, row.currentRoom, row.name));
+    users = {};
+    db.each('SELECT * FROM users', (err, row) => {
+      users[row.username] = new User(row.username);
     });
   });
 };
@@ -96,9 +100,15 @@ exports.addMessage = (roomName, message) => {
  * @returns {void}
  */
 exports.addUser = (name, socketID = undefined) => {
-  users[name] = new User(name);
-  if (socketID !== undefined) {
-    users[name].socket = assignUnregisteredSocket(socketID);
+  if (users[name] !== undefined) {
+    // Username taken.
+    return false;
+  } else {
+    users[name] = new User(name);
+    if (socketID !== undefined) {
+      users[name].socket = assignUnregisteredSocket(socketID);
+    }
+    return true;
   }
 };
 
@@ -117,7 +127,10 @@ exports.updateUserSocket = (name, socket) => {
  * @param {String} name - The name of the user.
  * @returns {User}
  */
-exports.findUser = name => users[name];
+exports.findUser = name => {
+  console.log('FindUser: ', users[name]);
+  return users[name];
+};
 
 /**
  * Removes the user object with the matching name.

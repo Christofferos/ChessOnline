@@ -1,5 +1,7 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const model = require('../model.js');
+const db = require('../database');
 
 const router = express.Router();
 
@@ -13,7 +15,9 @@ const router = express.Router();
  * @returns {void}
  */
 const requireAuth = (req, res, next) => {
+  console.log('requireAuth. Session userId: ', req.session.userID);
   const maybeUser = model.findUser(req.session.userID);
+  console.log('maybeUser, requireAuth: ', maybeUser);
 
   // "auth" check
   if (maybeUser === undefined) {
@@ -34,7 +38,9 @@ const requireAuth = (req, res, next) => {
  * @returns {void}
  */
 router.get('/isAuthenticated', (req, res) => {
+  console.log('UserID: ', req.session.userID);
   const maybeUser = model.findUser(req.session.userID);
+  console.log('maybeUser, isAuthenticated: ', maybeUser);
   res.status(200).json({
     isAuthenticated: maybeUser !== undefined,
     username: maybeUser !== undefined ? maybeUser.name : 'N/A',
@@ -49,77 +55,60 @@ router.get('/isAuthenticated', (req, res) => {
  */
 router.post('/authenticate', (req, res) => {
   // Check if the user actually exists instead of creating a new one
-
-  /* if (!model.findUser(req.session.userID)) {
-    model.addUser(req.body.username, req.session.socketID);
-  } */
-  const { username, password } = req.body;
-
-  // Update the userID of the currently active session
-  req.session.userID = req.body.username;
-  req.session.save((err) => {
-    if (err) {
-      console.error(err);
-      res.sendStatus(401); // 404 maybe
-    } else {
-      console.debug(`Saved userID: ${req.session.userID}`);
-    }
-  });
-
-  res.sendStatus(200);
-
-  /*
-  // Check if the user actually exists instead of creating a new one
   const { username, password } = req.body;
 
   db.serialize(() => {
-    const statement = db.prepare('SELECT id, username, password FROM admins WHERE username = (?)');
-    console.log(`${username} ${password}`);
+    const statement = db.prepare('SELECT username, password FROM users WHERE username = (?)');
     statement.get(username, async (err, row) => {
       if (err) {
         throw new Error(err);
       }
       if (typeof row !== 'undefined') {
-        console.log(`${row.id}: ${row.username}, ${row.password}`);
         const match = await bcrypt.compare(password, row.password);
         if (match) {
-          console.log('match');
           statement.finalize();
           // Update the userID of the currently active session
-
-          req.session.assistantId = row.id;
-          res.cookie('assistantId', row.id);
-          res.cookie('username', username);
-          console.log('Cookie-username: ', res.cookie.username);
-          console.log('Cookie-assistantID: ', res.cookie.assistantId);
-          console.log('Session::');
+          req.session.userID = row.username;
+          console.log('Session from /authenticate route:');
           console.log(req.session);
           req.session.save((error) => {
             if (error) {
               console.error(error);
-              res.sendStatus(401); // 404 maybe
+              res.sendStatus(401);
             } else {
               console.debug('Saved session');
             }
           });
-
-          res.sendStatus(200).send('');
-            .json({
-              assistantId: assistantId,
-              username: username,
-            });
-
-          } else if (!match) {
-            statement.finalize();
-            res.sendStatus(404);
-          }
-        } else {
+          res.sendStatus(200);
+        } else if (!match) {
           statement.finalize();
           res.sendStatus(404);
         }
-      });
+      } else {
+        statement.finalize();
+        res.sendStatus(404);
+      }
     });
-  */
+  });
+
+  /* if (user !== undefined) {
+    // Update the userID of the currently active session
+    req.session.userID = username;
+    req.session.save(err => {
+      if (err) {
+        console.error(err);
+        res.status(401); // 404 maybe
+      } else {
+        console.debug(`Saved userID: ${req.session.userID}`);
+      }
+    });
+
+    console.log('sign in as ', username);
+    res.status(200).end();
+  } else {
+    console.log('user not found');
+    res.status(404).end();
+  } */
 });
 
 // TODO: Add 'create account' route.

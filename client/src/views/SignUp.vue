@@ -1,10 +1,12 @@
 <template>
   <div class="text-box col-md-4 col-md-offset-4" style="text-align: center">
-    <h1 class="login-title">Sign in</h1>
+    <h1 class="login-title">Register account</h1>
     <div id="statusSuccess" class="badge green"></div>
     <h4 class="login-status"></h4>
 
-    <form class="account-form" v-on:submit.prevent="done()">
+    <!-- REGEX pattern: pattern="^[a-zA-Z]{3,24}$" -->
+
+    <form class="account-form" v-on:submit.prevent="signUp()">
       <input
         class="form-control"
         type="text"
@@ -21,33 +23,29 @@
         autofocus
         placeholder="Password"
       />
-      <div id="statusFail" class="badge red"></div>
-      <input class="btn btn-default login-button" type="submit" value="Sign in" />
+      <div id="statusFail" v-if="success === false" class="badge red">Sign up failed!</div>
+      <input
+        class="btn btn-default login-button"
+        type="submit"
+        value="Sign up"
+        style="margin-top: 20px"
+      />
     </form>
-    <input
-      class="btn btn-default login-button"
-      type="button"
-      value="Register account"
-      style="margin-top: 20px"
-      v-on:click="redirect('/signUp')"
-    />
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Login',
+  name: 'SignUp',
   components: {},
   data: () => ({
     username: '',
     password: '',
+    success: true,
   }),
   methods: {
-    redirect(target) {
-      this.$router.push(target);
-    },
-    done() {
-      fetch('/api/authenticate', {
+    signUp() {
+      fetch('/api/signUp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,19 +56,24 @@ export default {
         }),
       })
         .then((resp) => {
-          if (resp.ok) return resp;
+          if (resp.ok) return resp.json();
           this.$store.commit('setIsAuthenticated', false);
           this.$router.push({
-            path: 'login',
+            path: 'signUp',
           });
           throw new Error(resp.text);
         })
-        .then(() => {
-          this.$store.commit('setIsAuthenticated', true);
-          this.$store.commit('setUsername', this.username);
-          this.$router.push({
-            path: 'profile',
-          });
+        .then((data) => {
+          if (data.success) {
+            this.$store.commit('setIsAuthenticated', true);
+            this.$store.commit('setUsername', this.username);
+            this.$router.push({
+              path: 'profile',
+            });
+          } else {
+            // Display fail message
+            this.success = false;
+          }
         })
         .catch((error) => {
           console.error('Authentication failed unexpectedly');

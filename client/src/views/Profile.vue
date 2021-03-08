@@ -12,6 +12,14 @@
       Experience Score: _
     </h4>
 
+    <input
+      class="btn btn-default login-button"
+      type="button"
+      value="Sign out"
+      style="margin-top: 10px; margin-bottom: 10px"
+      v-on:click="signOut()"
+    />
+
     <div
       style="border: 2px solid black; width: 350px; margin: 75px auto 25px auto;
            background: #504F4C; border-radius: 5px; padding-bottom: 20px;"
@@ -21,6 +29,7 @@
         <!-- Map over history with table rows -->
         <tr>
           <th>Player</th>
+          .
           <th>Result</th>
           <th>Moves</th>
           <th>Date</th>
@@ -50,6 +59,26 @@ export default {
   methods: {
     capitalizeFirstLetter(inputStr) {
       return inputStr.charAt(0).toUpperCase() + inputStr.slice(1);
+    },
+    signOut() {
+      console.log('sign out');
+      fetch('/api/signOut', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(() => {
+          this.$store.commit('setIsAuthenticated', false);
+          this.$store.commit('setUsername', '');
+          this.$router.push({
+            path: 'login',
+          });
+        })
+        .catch((error) => {
+          console.error('Authentication failed unexpectedly');
+          throw error;
+        });
     },
   },
 };

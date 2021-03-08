@@ -62,10 +62,12 @@ This will serve static files from the public directory, starting with index.html
 */
 
 // Bind REST controllers to /api/*
+const user = require('./controllers/user.controller.js');
 const auth = require('./controllers/auth.controller.js');
 const chat = require('./controllers/chat.controller.js');
 
 app.use('/api', auth.router);
+app.use('/api', user.router);
 // All chat endpoints require the user to be authenticated
 app.use('/api', auth.requireAuth, chat.router);
 
@@ -77,18 +79,18 @@ model.addRoom('Live Game 1'); // demo call
 model.addRoom('Live Game 2'); // demo call
 
 // Handle connected socket.io sockets
-io.on('connection', (socket) => {
+io.on('connection', socket => {
   // This function serves to bind socket.io connections to user models
 
   if (
-    socket.handshake.session.userID
-    && model.findUser(socket.handshake.session.userID) !== undefined
+    socket.handshake.session.userID &&
+    model.findUser(socket.handshake.session.userID) !== undefined
   ) {
     // If the current user already logged in and then reloaded the page
     model.updateUserSocket(socket.handshake.session.userID, socket);
   } else {
     socket.handshake.session.socketID = model.addUnregisteredSocket(socket);
-    socket.handshake.session.save((err) => {
+    socket.handshake.session.save(err => {
       if (err) console.error(err);
       else console.debug(`Saved socketID: ${socket.handshake.session.socketID}`);
     });
