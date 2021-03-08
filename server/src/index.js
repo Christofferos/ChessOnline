@@ -84,7 +84,6 @@ model.addLiveGame('Live Game 2');  */
 // Handle connected socket.io sockets
 io.on('connection', socket => {
   // This function serves to bind socket.io connections to user models
-
   if (
     socket.handshake.session.userID &&
     model.findUser(socket.handshake.session.userID) !== undefined

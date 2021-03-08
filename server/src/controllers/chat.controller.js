@@ -30,9 +30,11 @@ router.get('/room/:room/join', (req, res) => {
   }
 
   const user = model.findUser(req.session.userID);
+  console.log('room: ', room.id);
 
   // Join the right socket.io room
-  user.currentRoom = room.name;
+  user.currentRoom = room.id;
+  console.log('User: ', user);
   user.socket.join(user.currentRoom);
 
   // Send join message
@@ -41,9 +43,9 @@ router.get('/room/:room/join', (req, res) => {
   // Send http response
   res.status(200).json({
     list: room.messages,
-    msg: `Successfully joined room: ${room.name}`,
-    href_messages: `/room/${room.name}`,
-    href_send_message: `/room/${room.name}/message`,
+    msg: `Successfully joined room: ${room.id}`,
+    href_messages: `/room/${room.id}`,
+    href_send_message: `/room/${room.id}/message`,
   });
 });
 
@@ -64,7 +66,7 @@ router.post('/room/:room/message', (req, res) => {
   }
 
   const room = model.findLiveGame(req.params.room);
-  model.addMessage(room.name, `${user.name}: ${req.body.message}`);
+  model.addMessage(room.id, `${user.name}: ${req.body.message}`);
 
   res.sendStatus(200);
 });

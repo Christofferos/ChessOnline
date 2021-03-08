@@ -90,6 +90,9 @@ export default {
         this.entries = data.list;
       });
   },
+  copyToClipboard() {
+    console.log('Copy to clipboard');
+  },
 };
 </script>
 

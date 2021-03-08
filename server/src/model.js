@@ -34,12 +34,14 @@ exports.init = ({ io }) => {
  * @returns {Number} The ID of the socket in the pool of unregistered sockets.
  */
 exports.addUnregisteredSocket = socket => {
+  console.log('AddUnregisteredSocket HIT???');
   const socketID = nextUnregisteredSocketID;
   nextUnregisteredSocketID += 1;
 
   unregisteredSockets[socketID] = socket;
   return socketID;
 };
+
 const assignUnregisteredSocket = socketID => {
   const socket = unregisteredSockets[socketID];
   unregisteredSockets = Object.keys(unregisteredSockets)
@@ -95,7 +97,7 @@ exports.addMessage = (roomName, message) => {
  * Creates a user with the given name.
  * @param {String} name - The name of the user.
  * @param {Number} socketID - An optional ID of a socket.io socket in the unregistered sockets pool.
- * @see model.addUnregisteredSocket
+ * @see model.addUser
  * @returns {void}
  */
 exports.addUser = (name, socketID = undefined) => {
@@ -118,6 +120,7 @@ exports.addUser = (name, socketID = undefined) => {
  * @returns {void}
  */
 exports.updateUserSocket = (name, socket) => {
+  console.log('UpdateUserSocket HIT???');
   users[name].socket = socket;
 };
 
