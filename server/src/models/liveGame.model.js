@@ -19,8 +19,22 @@ class LiveGame {
     }
     this.player1 = player1;
     this.player2 = player2;
-    this.timeLeft1 = timeLeft1;
-    this.timeLeft2 = timeLeft2;
+    if (timeLeft1 === undefined) {
+      this.timeLeft1 = 180;
+    } else {
+      this.timeLeft1 = timeLeft1;
+    }
+    if (timeLeft2 === undefined) {
+      this.timeLeft2 = 180;
+    } else {
+      this.timeLeft2 = timeLeft2;
+    }
+    // Not persistant
+    this.messages = [];
+  }
+
+  addMessage(message) {
+    this.messages.push(message);
   }
 }
 

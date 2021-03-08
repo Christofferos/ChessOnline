@@ -8,8 +8,8 @@ const router = express.Router();
  * @returns {void}
  */
 router.get('/roomList', (req, res) => {
-  const rooms = model.getRooms();
-  res.status(200).json({ list: rooms });
+  const liveGames = model.getLiveGames();
+  res.status(200).json({ list: liveGames });
 });
 
 /**
@@ -20,7 +20,7 @@ router.get('/roomList', (req, res) => {
  * @returns {void}
  */
 router.get('/room/:room/join', (req, res) => {
-  const room = model.findRoom(req.params.room);
+  const room = model.findLiveGame(req.params.room);
   if (room === undefined) {
     res.status(404).json({
       msg: `No room with ID: ${req.params.room}`,
@@ -63,7 +63,7 @@ router.post('/room/:room/message', (req, res) => {
     return;
   }
 
-  const room = model.findRoom(req.params.room);
+  const room = model.findLiveGame(req.params.room);
   model.addMessage(room.name, `${user.name}: ${req.body.message}`);
 
   res.sendStatus(200);

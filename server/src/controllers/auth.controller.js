@@ -15,10 +15,7 @@ const router = express.Router();
  * @returns {void}
  */
 const requireAuth = (req, res, next) => {
-  console.log('requireAuth. Session userId: ', req.session.userID);
   const maybeUser = model.findUser(req.session.userID);
-  console.log('maybeUser, requireAuth: ', maybeUser);
-
   // "auth" check
   if (maybeUser === undefined) {
     res
@@ -38,9 +35,7 @@ const requireAuth = (req, res, next) => {
  * @returns {void}
  */
 router.get('/isAuthenticated', (req, res) => {
-  console.log('UserID: ', req.session.userID);
   const maybeUser = model.findUser(req.session.userID);
-  console.log('maybeUser, isAuthenticated: ', maybeUser);
   res.status(200).json({
     isAuthenticated: maybeUser !== undefined,
     username: maybeUser !== undefined ? maybeUser.name : 'N/A',
@@ -71,7 +66,7 @@ router.post('/authenticate', (req, res) => {
           req.session.userID = row.username;
           console.log('Session from /authenticate route:');
           console.log(req.session);
-          req.session.save((error) => {
+          req.session.save(error => {
             if (error) {
               console.error(error);
               res.sendStatus(401);

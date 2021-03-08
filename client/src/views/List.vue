@@ -7,7 +7,12 @@
 
       <div class="row">
         <div class="row" style="text-align: center;">
-          <input class="well btn btn-default button" type="button" value="Create Game" />
+          <input
+            class="well btn btn-default button"
+            v-on:click="newGame()"
+            type="button"
+            value="Create Game"
+          />
         </div>
         <div class="row" style="text-align: center;">
           <input class="well btn btn-default button" type="button" value="Join Game" />
@@ -53,10 +58,33 @@ export default {
     redirect(roomName) {
       this.$router.push(`/room/${roomName}`);
     },
+    newGame() {
+      fetch('/api/newGame', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: this.username,
+        }),
+      })
+        .then((resp) => {
+          if (resp.ok) return resp.json();
+          throw new Error(resp.text);
+        })
+        .then((data) => {
+          console.log(data.gameId);
+          this.redirect(data.gameId);
+        })
+        .catch((error) => {
+          console.error('Create game failed.');
+          throw error;
+        });
+    },
   },
   created() {
     fetch('/api/roomList')
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((data) => {
         this.rooms = data.list;
       })

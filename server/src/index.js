@@ -63,11 +63,13 @@ This will serve static files from the public directory, starting with index.html
 
 // Bind REST controllers to /api/*
 const user = require('./controllers/user.controller.js');
+const game = require('./controllers/game.controller.js');
 const auth = require('./controllers/auth.controller.js');
 const chat = require('./controllers/chat.controller.js');
 
 app.use('/api', auth.router);
 app.use('/api', user.router);
+app.use('/api', game.router);
 // All chat endpoints require the user to be authenticated
 app.use('/api', auth.requireAuth, chat.router);
 
@@ -75,8 +77,9 @@ app.use('/api', auth.requireAuth, chat.router);
 const model = require('./model.js');
 
 model.init({ io });
-model.addRoom('Live Game 1'); // demo call
-model.addRoom('Live Game 2'); // demo call
+// Hard coded rooms.
+/* model.addLiveGame('Live Game 1'); 
+model.addLiveGame('Live Game 2');  */
 
 // Handle connected socket.io sockets
 io.on('connection', socket => {

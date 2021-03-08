@@ -4,9 +4,8 @@ const LiveGame = require('./models/liveGame.model');
 const db = require('./database');
 
 /**
- * rooms & users are effectively hash maps with the name of the entry serving as a unique key.
+ * games & users are effectively hash maps with the name of the entry serving as a unique key.
  */
-let rooms = {};
 let users = {};
 let games = {};
 
@@ -87,7 +86,7 @@ usersInit();
  * @returns {void}
  */
 exports.addMessage = (roomName, message) => {
-  exports.findRoom(roomName).addMessage(message);
+  exports.findLiveGame(roomName).addMessage(message);
   exports.io.in(roomName).emit('msg', message);
   console.log(roomName, message);
 };
@@ -144,34 +143,34 @@ exports.removeUser = name => {
 };
 
 /**
- * Creates a room with the given name.
- * @param {String} name - The name of the room.
+ * Creates a game with the given id.
+ * @param {String} id - The id of the game.
  * @returns {void}
  */
-exports.addRoom = name => {
-  rooms[name] = new Room(name);
+exports.addLiveGame = (id, player1) => {
+  games[id] = new LiveGame(id, undefined, player1, undefined, undefined, undefined);
 };
 
 /**
- * Returns all the Rooms.
- * @returns {Room[]}
+ * Returns all the LiveGame:s.
+ * @returns {LiveGame[]}
  */
-exports.getRooms = () => Object.values(rooms);
+exports.getLiveGames = () => Object.values(games);
 
 /**
- * Removes the room object with the matching name.
- * @param {String} name - The name of the room.
+ * Removes the liveGame object with the matching id.
+ * @param {String} id - The id of the liveGame.
  * @returns {void}
  */
-exports.removeRoom = name => {
-  rooms = Object.values(rooms)
-    .filter(room => room.name !== name)
-    .reduce((res, room) => ({ ...res, [room.name]: room }), {});
+exports.removeLiveGame = id => {
+  games = Object.values(games)
+    .filter(game => game.id !== id)
+    .reduce((res, game) => ({ ...res, [game.id]: game }), {});
 };
 
 /**
- * Return the room object with the matching name.
- * @param {String} name - The name of the room.
- * @returns {Room}
+ * Return the liveGame object with the matching id.
+ * @param {String} id - The id of the game.
+ * @returns {LiveGame}
  */
-exports.findRoom = name => rooms[name];
+exports.findLiveGame = id => games[id];

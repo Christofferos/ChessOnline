@@ -23,7 +23,7 @@
         autofocus
         placeholder="Password"
       />
-      <div id="statusFail" v-if="success === false" class="badge red">Sign up failed!</div>
+      <div id="statusFail" v-if="success === false" class="badge red">Username already taken!</div>
       <input
         class="btn btn-default login-button"
         type="submit"
