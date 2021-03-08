@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import io from 'socket.io-client';
+/* import io from 'socket.io-client'; */
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -18,7 +18,7 @@ Vue.config.productionTip = false;
     store,
     render: h => h(App),
     data: {
-      socket: io().connect(),
+      socket: '',
     },
   }).$mount('#app');
 })();

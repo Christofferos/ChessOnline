@@ -73,7 +73,6 @@ export default {
           throw new Error(resp.text);
         })
         .then((data) => {
-          console.log(data.gameId);
           this.redirect(data.gameId);
         })
         .catch((error) => {
@@ -84,7 +83,7 @@ export default {
   },
   created() {
     fetch('/api/roomList')
-      .then((res) => res.json())
+      .then(res => res.json())
       .then((data) => {
         this.rooms = data.list;
       })

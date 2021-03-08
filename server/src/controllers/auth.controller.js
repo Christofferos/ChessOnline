@@ -64,11 +64,12 @@ router.post('/authenticate', (req, res) => {
           statement.finalize();
           // Update the userID of the currently active session
           req.session.userID = row.username;
-          console.log('Session from /authenticate route:');
-          console.log(req.session);
-          req.session.save(error => {
+          /* console.log('Session from /authenticate route:');
+          console.log(req.session); */
+          req.session.save((error) => {
             if (error) {
-              console.error(error);
+              // console.error(error);
+              console.log('Error in /authenticate route');
               res.sendStatus(401);
             } else {
               console.debug('Saved session');

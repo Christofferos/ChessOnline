@@ -30,11 +30,8 @@ router.get('/room/:room/join', (req, res) => {
   }
 
   const user = model.findUser(req.session.userID);
-  console.log('room: ', room.id);
 
-  // Join the right socket.io room
   user.currentRoom = room.id;
-  console.log('User: ', user);
   user.socket.join(user.currentRoom);
 
   // Send join message

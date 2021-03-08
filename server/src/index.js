@@ -78,11 +78,13 @@ const model = require('./model.js');
 
 model.init({ io });
 // Hard coded rooms.
-/* model.addLiveGame('Live Game 1'); 
+/* model.addLiveGame('Live Game 1');
 model.addLiveGame('Live Game 2');  */
 
 // Handle connected socket.io sockets
 io.on('connection', socket => {
+  console.log('Connection ... ');
+
   // This function serves to bind socket.io connections to user models
   if (
     socket.handshake.session.userID &&
@@ -93,8 +95,13 @@ io.on('connection', socket => {
   } else {
     socket.handshake.session.socketID = model.addUnregisteredSocket(socket);
     socket.handshake.session.save(err => {
-      if (err) console.error(err);
-      else console.debug(`Saved socketID: ${socket.handshake.session.socketID}`);
+      if (err) {
+        console.log('Connection error in index.js');
+        // console.error(err);
+      } else {
+        console.log('Saved SocketID');
+        // console.debug(`Saved socketID: ${socket.handshake.session.socketID}`);
+      }
     });
   }
 });

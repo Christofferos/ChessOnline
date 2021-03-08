@@ -14,7 +14,8 @@ db.serialize(async () => {
   db.run('CREATE TABLE users (username TEXT, password TEXT)');
   db.run('CREATE TABLE matchHistory (winner TEXT, loser TEXT, nrMoves INTEGER, date TEXT)');
   db.run(
-    'CREATE TABLE liveGames (id TEXT, currentGame TEXT, player1 TEXT, player2 TEXT, timeLeft1 INTEGER, timeLeft2 INTEGER)',
+    'CREATE TABLE liveGames (id TEXT, currentGame TEXT, player1 TEXT,
+      player2 TEXT, timeLeft1 INTEGER, timeLeft2 INTEGER)',
   );
   */
 });

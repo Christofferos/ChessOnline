@@ -8,7 +8,6 @@ const saltRounds = 10;
 const router = express.Router();
 
 router.post('/signUp', (req, res) => {
-  console.log('sign up');
   const success = model.addUser(req.body.username);
   if (success) {
     console.log('success: ', success);
@@ -18,17 +17,16 @@ router.post('/signUp', (req, res) => {
         console.log('add user: ', req.body.username, ' ', hash);
         statement.run(req.body.username, hash);
         statement.finalize();
-        res.status(200).json({ success: success });
+        res.status(200).json({ success });
       });
     });
   } else {
     console.log('Sign up failed!');
-    res.status(200).json({ success: success });
+    res.status(200).json({ success });
   }
 });
 
 router.put('/signOut', (req, res) => {
-  console.log('sign out');
   req.session.destroy();
   res.status(200).end();
 });

@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import io from 'socket.io-client';
+
 export default {
   name: 'Profile',
   components: {},
@@ -50,18 +52,17 @@ export default {
     return {
       currentlyLoggedIn: '',
       success: true,
-      socket: null,
     };
   },
   created() {
     this.currentlyLoggedIn = this.$store.state.cookie.username;
+    this.$root.socket = io().connect();
   },
   methods: {
     capitalizeFirstLetter(inputStr) {
       return inputStr.charAt(0).toUpperCase() + inputStr.slice(1);
     },
     signOut() {
-      console.log('sign out');
       fetch('/api/signOut', {
         method: 'PUT',
         headers: {

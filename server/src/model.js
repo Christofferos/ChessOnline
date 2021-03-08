@@ -1,4 +1,4 @@
-const Room = require('./models/room.model');
+/* const Room = require('./models/room.model'); */
 const User = require('./models/user.model');
 const LiveGame = require('./models/liveGame.model');
 const db = require('./database');
@@ -34,7 +34,6 @@ exports.init = ({ io }) => {
  * @returns {Number} The ID of the socket in the pool of unregistered sockets.
  */
 exports.addUnregisteredSocket = socket => {
-  console.log('AddUnregisteredSocket HIT???');
   const socketID = nextUnregisteredSocketID;
   nextUnregisteredSocketID += 1;
 
@@ -55,7 +54,6 @@ const gamesInit = () => {
   db.serialize(() => {
     games = {};
     db.each('SELECT * FROM liveGames', (err, row) => {
-      console.log('liveGames: ', row.gameState);
       games[row.id] = new LiveGame(
         row.id,
         row.gameState,
@@ -71,7 +69,6 @@ gamesInit();
 
 const usersInit = async () => {
   // Fill users with db data
-  console.log('users init');
   db.serialize(() => {
     users = {};
     db.each('SELECT * FROM users', (err, row) => {
@@ -90,7 +87,6 @@ usersInit();
 exports.addMessage = (roomName, message) => {
   exports.findLiveGame(roomName).addMessage(message);
   exports.io.in(roomName).emit('msg', message);
-  console.log(roomName, message);
 };
 
 /**
@@ -104,13 +100,12 @@ exports.addUser = (name, socketID = undefined) => {
   if (users[name] !== undefined) {
     // Username taken.
     return false;
-  } else {
-    users[name] = new User(name);
-    if (socketID !== undefined) {
-      users[name].socket = assignUnregisteredSocket(socketID);
-    }
-    return true;
   }
+  users[name] = new User(name);
+  if (socketID !== undefined) {
+    users[name].socket = assignUnregisteredSocket(socketID);
+  }
+  return true;
 };
 
 /**
@@ -120,7 +115,6 @@ exports.addUser = (name, socketID = undefined) => {
  * @returns {void}
  */
 exports.updateUserSocket = (name, socket) => {
-  console.log('UpdateUserSocket HIT???');
   users[name].socket = socket;
 };
 
@@ -130,7 +124,6 @@ exports.updateUserSocket = (name, socket) => {
  * @returns {User}
  */
 exports.findUser = name => {
-  console.log('FindUser: ', users[name]);
   return users[name];
 };
 
