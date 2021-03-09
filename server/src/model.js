@@ -123,9 +123,7 @@ exports.updateUserSocket = (name, socket) => {
  * @param {String} name - The name of the user.
  * @returns {User}
  */
-exports.findUser = name => {
-  return users[name];
-};
+exports.findUser = name => users[name];
 
 /**
  * Removes the user object with the matching name.
@@ -136,6 +134,17 @@ exports.removeUser = name => {
   users = Object.values(users)
     .filter(user => user.name !== name)
     .reduce((res, user) => ({ ...res, [user.name]: user }), {});
+};
+
+exports.authorizedToJoinGame = (userId, gameId) => {
+  if (
+    games[gameId].player2 === '' ||
+    userId === games[gameId].player1 ||
+    userId === games[gameId].player2
+  ) {
+    return true;
+  }
+  return false;
 };
 
 /**
@@ -154,6 +163,13 @@ exports.addLiveGame = (id, player1) => {
 exports.getLiveGames = () => Object.values(games);
 
 /**
+ * Returns LiveGames that user is involved in.
+ * @returns {LiveGame[]}
+ */
+exports.getLiveGames = userID =>
+  Object.values(games).filter(game => game.player1 === userID || game.player2 === userID);
+
+/**
  * Removes the liveGame object with the matching id.
  * @param {String} id - The id of the liveGame.
  * @returns {void}
@@ -162,6 +178,7 @@ exports.removeLiveGame = id => {
   games = Object.values(games)
     .filter(game => game.id !== id)
     .reduce((res, game) => ({ ...res, [game.id]: game }), {});
+  exports.io.emit('remainingRooms', games);
 };
 
 /**

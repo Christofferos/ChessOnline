@@ -1,6 +1,6 @@
 const express = require('express');
 const model = require('../model.js');
-/* const db = require('../database'); */
+const db = require('../database');
 
 const router = express.Router();
 
@@ -19,6 +19,17 @@ router.post('/newGame', (req, res) => {
   const gameId = makeId(8);
   model.addLiveGame(gameId);
   res.json({ gameId });
+});
+
+router.delete('/removeGame', (req, res) => {
+  console.log('remove game');
+  model.removeLiveGame(req.body.id);
+
+  db.serialize(async () => {
+    const statement = db.prepare('DELETE FROM liveGames WHERE id = (?)');
+    statement.run(req.body.id);
+  });
+  res.status(200).end();
 });
 
 module.exports = { router };

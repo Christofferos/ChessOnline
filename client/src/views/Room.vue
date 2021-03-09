@@ -2,13 +2,14 @@
   <div class="container">
     <section class="col-md-10 col-md-offset-1">
       <div class="row" style="text-align: center;">
-        <h1>Motståndare</h1>
+        <h1 v-if="this.opponent === ''">Waiting for an opponent...</h1>
+        <h1 v-else>{{ this.opponent }}</h1>
       </div>
       <div class="row" style="text-align: center;">
         <img src="https://miro.medium.com/max/1306/1*1VS0ChJwwd0vx1URrH-zOQ.png" />
       </div>
       <div class="row" style="text-align: center;">
-        <h1>Anna</h1>
+        <h1>{{ this.$store.state.cookie.username }}</h1>
       </div>
 
       <div
@@ -56,6 +57,7 @@ export default {
       entries: [],
       socket: null,
       input: '',
+      opponent: '',
     };
   },
   methods: {
@@ -72,6 +74,10 @@ export default {
       this.input = '';
     },
   },
+  /* beforeDestroy() {
+    window.addEventListener('beforeunload');
+    window.removeEventListener('beforeunload');
+  }, */
   created() {
     this.socket = this.$root.socket;
     this.socket.on('msg', (msg) => {
@@ -92,6 +98,26 @@ export default {
   },
   copyToClipboard() {
     console.log('Copy to clipboard');
+  },
+  beforeDestroy() {
+    if (this.opponent === '') {
+      fetch('/api/removeGame', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: this.room,
+        }),
+      })
+        .then((resp) => {
+          if (!resp.ok) {
+            throw new Error(`Unexpected failure when joining room: ${this.room}`);
+          }
+          return resp;
+        })
+        .catch(console.error);
+    }
   },
 };
 </script>

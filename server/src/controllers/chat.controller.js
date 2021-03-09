@@ -1,5 +1,6 @@
 const express = require('express');
 const model = require('../model.js');
+const db = require('../database.js');
 
 const router = express.Router();
 
@@ -9,6 +10,11 @@ const router = express.Router();
  */
 router.get('/roomList', (req, res) => {
   const liveGames = model.getLiveGames();
+  res.status(200).json({ list: liveGames });
+});
+
+router.get('/userRoomList', (req, res) => {
+  const liveGames = model.getLiveGames(req.session.userID);
   res.status(200).json({ list: liveGames });
 });
 
@@ -31,19 +37,41 @@ router.get('/room/:room/join', (req, res) => {
 
   const user = model.findUser(req.session.userID);
 
-  user.currentRoom = room.id;
-  user.socket.join(user.currentRoom);
+  if (model.authorizedToJoinGame(req.session.userID, room.id)) {
+    user.currentRoom = room.id;
+    user.socket.join(user.currentRoom);
 
-  // Send join message
-  model.addMessage(user.currentRoom, `${user.name} joined the room!`);
+    const game = model.findLiveGame(room.id);
 
-  // Send http response
-  res.status(200).json({
-    list: room.messages,
-    msg: `Successfully joined room: ${room.id}`,
-    href_messages: `/room/${room.id}`,
-    href_send_message: `/room/${room.id}/message`,
-  });
+    if (game.player1 === '') {
+      game.player1 = req.session.userID;
+      db.serialize(async () => {
+        const statement = db.prepare('UPDATE liveGames SET player1 = (?) WHERE id = (?)');
+        statement.run(req.session.userID, game.id);
+      });
+    } else if (game.player2 === '') {
+      game.player2 = req.session.userID;
+      db.serialize(async () => {
+        const statement = db.prepare('UPDATE liveGames SET player2 = (?) WHERE id = (?)');
+        statement.run(req.session.userID, game.id);
+      });
+    }
+
+    // Send join message
+    model.addMessage(user.currentRoom, `${user.name} joined the room!`);
+
+    // Send http response
+    res.status(200).json({
+      list: room.messages,
+      msg: `Successfully joined room: ${room.id}`,
+      href_messages: `/room/${room.id}`,
+      href_send_message: `/room/${room.id}/message`,
+      success: true,
+    });
+  } else {
+    console.log('FALSE????');
+    res.status(401).json({ success: false });
+  }
 });
 
 /**
