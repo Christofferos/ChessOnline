@@ -33,7 +33,7 @@ exports.init = ({ io }) => {
  * @param {SocketIO.Socket} socket - The socket.io socket to add to the pool.
  * @returns {Number} The ID of the socket in the pool of unregistered sockets.
  */
-exports.addUnregisteredSocket = socket => {
+exports.addUnregisteredSocket = (socket) => {
   const socketID = nextUnregisteredSocketID;
   nextUnregisteredSocketID += 1;
 
@@ -41,10 +41,10 @@ exports.addUnregisteredSocket = socket => {
   return socketID;
 };
 
-const assignUnregisteredSocket = socketID => {
+const assignUnregisteredSocket = (socketID) => {
   const socket = unregisteredSockets[socketID];
   unregisteredSockets = Object.keys(unregisteredSockets)
-    .filter(sockID => sockID !== socketID)
+    .filter((sockID) => sockID !== socketID)
     .reduce((res, sockID) => ({ ...res, [sockID]: unregisteredSockets[sockID] }), {});
   return socket;
 };
@@ -123,24 +123,24 @@ exports.updateUserSocket = (name, socket) => {
  * @param {String} name - The name of the user.
  * @returns {User}
  */
-exports.findUser = name => users[name];
+exports.findUser = (name) => users[name];
 
 /**
  * Removes the user object with the matching name.
  * @param {String} name - The name of the user
  * @returns {void}
  */
-exports.removeUser = name => {
+exports.removeUser = (name) => {
   users = Object.values(users)
-    .filter(user => user.name !== name)
+    .filter((user) => user.name !== name)
     .reduce((res, user) => ({ ...res, [user.name]: user }), {});
 };
 
 exports.authorizedToJoinGame = (userId, gameId) => {
   if (
-    games[gameId].player2 === '' ||
-    userId === games[gameId].player1 ||
-    userId === games[gameId].player2
+    games[gameId].player2 === ''
+    || userId === games[gameId].player1
+    || userId === games[gameId].player2
   ) {
     return true;
   }
@@ -166,17 +166,16 @@ exports.getLiveGames = () => Object.values(games);
  * Returns LiveGames that user is involved in.
  * @returns {LiveGame[]}
  */
-exports.getLiveGames = userID =>
-  Object.values(games).filter(game => game.player1 === userID || game.player2 === userID);
+exports.getLiveGames = (userID) => Object.values(games).filter((game) => game.player1 === userID || game.player2 === userID);
 
 /**
  * Removes the liveGame object with the matching id.
  * @param {String} id - The id of the liveGame.
  * @returns {void}
  */
-exports.removeLiveGame = id => {
+exports.removeLiveGame = (id) => {
   games = Object.values(games)
-    .filter(game => game.id !== id)
+    .filter((game) => game.id !== id)
     .reduce((res, game) => ({ ...res, [game.id]: game }), {});
   exports.io.emit('remainingRooms', games);
 };
@@ -186,4 +185,4 @@ exports.removeLiveGame = id => {
  * @param {String} id - The id of the game.
  * @returns {LiveGame}
  */
-exports.findLiveGame = id => games[id];
+exports.findLiveGame = (id) => games[id];

@@ -17,7 +17,11 @@ function makeId(length) {
 router.post('/newGame', (req, res) => {
   console.log('new game');
   const gameId = makeId(8);
-  model.addLiveGame(gameId);
+  model.addLiveGame(gameId, req.session.userID);
+  db.serialize(async () => {
+    const statement = db.prepare('INSERT INTO liveGames VALUES (?, ?, ?, ?, ?, ?)');
+    statement.run(gameId, '', req.session.userID, '', 180, 180);
+  });
   res.json({ gameId });
 });
 

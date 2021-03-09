@@ -23,7 +23,7 @@
               type="text"
               placeholder="Enter Game Code"
               style="width: 350px; font-size: 22px; text-align: center; border-radius: 5px;"
-              pattern="[A-Za-z1-9]{8}"
+              pattern="[A-Za-z0-9]{8}"
               title="Eight letter code"
               v-model="gameCode"
             />
@@ -107,6 +107,7 @@ export default {
           throw new Error(resp.text);
         })
         .then((data) => {
+          this.gameCode = data.gameId;
           this.redirect(data.gameId);
         })
         .catch((error) => {
@@ -115,7 +116,7 @@ export default {
         });
     },
     join() {
-      fetch(`/api/room/${this.gameCode}/join`)
+      fetch(`/api/room/${this.gameCode}/authorizedToJoin`)
         .then((resp) => {
           if (!resp.ok) {
             throw new Error(`Unexpected failure when joining room: ${this.gameCode}`);

@@ -16,7 +16,14 @@
         style="text-align: center; padding: 20px; border-radius: 10px;
         background: #41403D; width: 450px; margin: auto auto 25px auto;"
       >
-        <input class="well btn btn-default button" type="button" value="🔗 Utmaningslänk" />
+        <div id="clipboard" style="display: none;">{{ this.room }}</div>
+        <input
+          class="well btn btn-default button"
+          type="button"
+          value="🔗 Game Code"
+          v-on:click="copyToClipboard()"
+        />
+        <!--  -->
         <h1>Chat</h1>
         <form v-on:submit.prevent="send()">
           <input
@@ -74,16 +81,7 @@ export default {
       this.input = '';
     },
   },
-  /* beforeDestroy() {
-    window.addEventListener('beforeunload');
-    window.removeEventListener('beforeunload');
-  }, */
   created() {
-    this.socket = this.$root.socket;
-    this.socket.on('msg', (msg) => {
-      this.entries = [msg, ...this.entries];
-    });
-
     fetch(`/api/room/${this.room}/join`)
       .then((resp) => {
         if (!resp.ok) {
@@ -91,12 +89,25 @@ export default {
         }
         return resp.json();
       })
-      .catch(console.error)
-      .then((data) => {
-        this.entries = data.list;
-      });
+      .catch(console.error);
+
+    this.socket = this.$root.socket;
+    this.socket.on('msg', (msg) => {
+      this.entries = [msg, ...this.entries];
+    });
+
+    this.socket.on('getGamePlayers', (players) => {
+      console.log('Player1 & Player2: ', players.player1, players.player2);
+      console.log('Store username: ', this.$store.state.cookie.username);
+      if (this.$store.state.cookie.username !== players.player1) {
+        this.opponent = players.player1;
+      } else if (this.$store.state.cookie.username !== players.player2) {
+        this.opponent = players.player2;
+      }
+    });
   },
   copyToClipboard() {
+    const copyText = document.getElementById('clipboard');
     console.log('Copy to clipboard');
   },
   beforeDestroy() {
