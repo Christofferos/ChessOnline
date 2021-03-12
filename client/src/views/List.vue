@@ -48,7 +48,12 @@
         <div
           class="row well button"
           v-for="room in rooms"
-          @click="redirect(room.id)"
+          @click="
+            () => {
+              gameCode = room.id;
+              join();
+            }
+          "
           :key="room.id"
           style="margin: auto auto 5px auto"
         >
@@ -73,18 +78,32 @@ export default {
   }),
   created() {
     this.$root.socket.on('newRoom', (newRoom) => {
-      console.log('Update all clients with newly added room', newRoom);
-      this.rooms = [...Object.values(this.rooms), newRoom];
+      console.log(
+        'NewRoom, before: ',
+        newRoom,
+        ' Client username: ',
+        this.$store.state.cookie.username,
+      );
+      if (
+        newRoom.player1 === this.$store.state.cookie.username
+        || newRoom.player2 === this.$store.state.cookie.username
+      ) {
+        this.rooms = [...Object.values(this.rooms), newRoom];
+      }
     });
     this.$root.socket.on('remainingRooms', (remainingRooms) => {
-      console.log('Update all clients with remaining rooms', remainingRooms);
-      this.rooms = Object.values(remainingRooms);
+      this.rooms = Object.values(remainingRooms).filter(
+        room => room.player1 === this.$store.state.cookie.username
+          || room.player2 === this.$store.state.cookie.username,
+      );
+      console.log('after remainingRooms: ', this.rooms);
     });
 
     fetch('/api/userRoomList')
       .then(res => res.json())
       .then((data) => {
         this.rooms = data.list;
+        console.log('fetch userRoomList: ', this.rooms);
       })
       .catch(console.error);
   },

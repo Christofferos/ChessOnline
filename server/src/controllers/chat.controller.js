@@ -61,6 +61,7 @@ router.get('/room/:room/join', (req, res) => {
 
   // Send http response
   res.status(200).json({
+    game,
     list: game.messages,
     msg: `Successfully joined game: ${game.id}`,
     href_messages: `/room/${game.id}`,
