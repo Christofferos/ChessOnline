@@ -13,5 +13,9 @@
     "client:lint:fix": "cd client && npm run lint:fix",
     "server:lint:fix": "cd server && npm run lint:fix",
     "lint:fix": "npm run client:lint:fix && npm run server:lint:fix"
+  },
+  "dependencies": {
+    "v-clipboard": "^2.2.3",
+    "vue-head": "^2.2.0"
   }
 }
