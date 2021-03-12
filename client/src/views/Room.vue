@@ -5,6 +5,9 @@
         <h1 v-if="this.opponent === ''">Waiting for an opponent...</h1>
         <h1 v-else>{{ this.opponent }}</h1>
       </div>
+
+      <div class="board" style="text-align: center;"></div>
+
       <div class="row" style="text-align: center;">
         <img src="https://miro.medium.com/max/1306/1*1VS0ChJwwd0vx1URrH-zOQ.png" />
       </div>
@@ -65,6 +68,7 @@ export default {
       socket: null,
       input: '',
       opponent: '',
+      reverseBoard: false,
     };
   },
   methods: {
@@ -101,10 +105,32 @@ export default {
       console.log('Store username: ', this.$store.state.cookie.username);
       if (this.$store.state.cookie.username !== players.player1) {
         this.opponent = players.player1;
+        this.reverseBoard = true;
       } else if (this.$store.state.cookie.username !== players.player2) {
         this.opponent = players.player2;
       }
     });
+  },
+  createBoard() {
+    const boardElement = document.getElementById('board');
+    let rows = '';
+    for (let y = 0; y < 8; y += 1) {
+      rows += `<div class="row" id=${x}>`;
+      for (let x = 0; x < 8; x += 1) {
+        const cell = document.createElement('div');
+        cell.className = 'col';
+        cell.id = x + y * 8;
+        if (cell.id % 2 === 0) {
+          cell.style.background = '#E2E5BE'; // Vit
+        } else {
+          cell.style.background = '#58793B'; // Green
+        }
+        // #BFD01A // Gul - Flytta
+        boardElement.appendChild(cell);
+      }
+
+      rows += '</div>';
+    }
   },
   copyToClipboard() {
     const copyText = document.getElementById('clipboard');
