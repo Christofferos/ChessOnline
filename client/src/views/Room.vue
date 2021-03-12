@@ -112,7 +112,7 @@ export default {
     });
   },
   createBoard() {
-    const boardElement = document.getElementById('board');
+    let boardElement = document.getElementById('board');
     let rows = '';
     for (let y = 0; y < 8; y += 1) {
       rows += `<div class="row" id=${x}>`;
@@ -128,7 +128,6 @@ export default {
         // #BFD01A // Gul - Flytta
         boardElement.appendChild(cell);
       }
-
       rows += '</div>';
     }
   },
