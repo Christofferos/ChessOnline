@@ -51,6 +51,7 @@ const assignUnregisteredSocket = (socketID) => {
 
 const gamesInit = () => {
   // Fill games with db data
+  console.log('games init');
   db.serialize(() => {
     games = {};
     db.each('SELECT * FROM liveGames', (err, row) => {
@@ -69,8 +70,10 @@ gamesInit();
 
 const usersInit = async () => {
   // Fill users with db data
+  console.log('users init');
   db.serialize(() => {
     users = {};
+    console.log('how many users are in the server?');
     db.each('SELECT * FROM users', (err, row) => {
       users[row.username] = new User(row.username);
     });
@@ -154,6 +157,7 @@ exports.authorizedToJoinGame = (userId, gameId) => {
  */
 exports.addLiveGame = (id, player1) => {
   games[id] = new LiveGame(id, undefined, player1, undefined, undefined, undefined);
+  exports.io.emit('newRoom', games[id]);
 };
 
 /**

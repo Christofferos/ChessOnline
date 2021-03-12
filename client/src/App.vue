@@ -52,6 +52,35 @@ export default {
       this.$router.push(target);
     },
   },
+  mounted() {
+    /* const chessboardJs = document.createElement('script');
+    chessboardJs.setAttribute(
+      'src',
+      'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js',
+    );
+    document.head.appendChild(chessboardJs);
+    const chessboardJQuery = document.createElement('script');
+    chessboardJQuery.setAttribute('src', 'https://code.jquery.com/jquery-1.12.4.min.js');
+    document.head.appendChild(chessboardJQuery);
+    const chessboardCss = document.createElement('link');
+    chessboardCss.setAttribute(
+      'href',
+      'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css',
+    );
+    document.head.appendChild(chessboardCss); */
+  },
+  /* head: {
+    link: [
+      {
+        rel: 'stylesheet',
+        href: './chessboard/css/chessboard-1.0.0.min.css',
+      },
+    ],
+    script: [
+      { type: 'text/javascript', src: 'https://code.jquery.com/jquery-1.12.4.min.js' },
+      { type: 'text/javascript', src: './chessboard/chessboard-1.0.0.min.js' },
+    ],
+  }, */
 };
 </script>
 

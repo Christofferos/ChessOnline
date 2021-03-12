@@ -1,7 +1,11 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import Clipboard from 'v-clipboard';
+import VueHead from 'vue-head';
 
 Vue.use(Vuex);
+Vue.use(Clipboard);
+Vue.use(VueHead);
 
 // no-param-reassign prevents store.isAuthenticated = isAuthenticated
 /* eslint-disable no-param-reassign */
