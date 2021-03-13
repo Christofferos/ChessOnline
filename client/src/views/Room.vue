@@ -1,16 +1,83 @@
 <template>
   <div class="container">
-    <section class="col-md-10 col-md-offset-1">
+    <section
+      class="col-md-10 col-md-offset-1"
+      style="display: flex; flex-direction: column; justify-content: center; align-items: center;"
+    >
       <div class="row" style="text-align: center;">
         <h1 v-if="this.opponent === ''">Waiting for an opponent...</h1>
         <h1 v-else>{{ this.opponent }}</h1>
       </div>
 
-      <div id="board" ref="board" style="text-align: center;"></div>
+      <div
+        id="board"
+        style="display: inline-block; vertical-align: bottom; <!-- text-align: center; -->"
+      >
+        <div
+          class="row"
+          v-for="row in rows"
+          :key="row"
+          v-bind:id="row"
+          v-bind:style="{ display: 'flex', flexDirection: 'row' }"
+        >
+          <span
+            class="col"
+            v-for="col in columns"
+            :key="col"
+            v-bind:id="col"
+            v-bind:style="{
+              background: (col + row) % 2 === 0 ? '#E2E5BE' : '#58793B',
+              display: 'flex',
+              justifyContent: 'space-between',
+              height: '100px',
+              width: '100px',
+            }"
+          >
+            <img :src="pieces.P" style="width: 100px; position: absolute;" />
+            <span
+              v-if="reverseBoard === false"
+              v-bind:style="{
+                opacity: col === 0 ? 1 : 0,
+                color: row % 2 === 0 ? '#58793B' : '#E2E5BE',
+                fontWeight: 800,
+              }"
+              >{{ row + 1 }}
+            </span>
 
-      <!-- <div class="row" style="text-align: center;">
-        <img src="https://miro.medium.com/max/1306/1*1VS0ChJwwd0vx1URrH-zOQ.png" />
-      </div> -->
+            <span
+              v-if="reverseBoard"
+              v-bind:style="{
+                opacity: col === 0 ? 1 : 0,
+                color: row % 2 === 0 ? '#58793B' : '#E2E5BE',
+                fontWeight: 800,
+              }"
+              >{{ 8 - row }}</span
+            >
+            <span
+              v-bind:style="{
+                display: 'flex',
+                alignItems: 'flex-end',
+                color: col % 2 !== 0 ? '#58793B' : '#E2E5BE',
+                fontWeight: 1000,
+                paddingRight: '3px',
+              }"
+              v-if="reverseBoard === false && row === 7"
+              >{{ letters[col] }}</span
+            >
+            <span
+              v-bind:style="{
+                display: 'flex',
+                alignItems: 'flex-end',
+                color: col % 2 !== 0 ? '#58793B' : '#E2E5BE',
+                fontWeight: 1000,
+                paddingRight: '3px',
+              }"
+              v-if="reverseBoard && row === 7"
+              >{{ letters[7 - col] }}</span
+            >
+          </span>
+        </div>
+      </div>
 
       <div class="row" style="text-align: center;">
         <h1>{{ this.$store.state.cookie.username }}</h1>
@@ -54,17 +121,20 @@
   </div>
 </template>
 
-<script
-  src="https://code.jquery.com/jquery-3.5.1.min.js"
-  integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
-  crossorigin="anonymous"
-></script>
-<script
-  src="../chessboard/chessboard-1.0.0.min.js"
-  integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
-  crossorigin="anonymous"
-></script>
 <script>
+import P from '../assets/wp.png';
+import R from '../assets/wr.png';
+import N from '../assets/wn.png';
+import B from '../assets/wb.png';
+import Q from '../assets/wq.png';
+import K from '../assets/wk.png';
+import p from '../assets/bp.png';
+import r from '../assets/br.png';
+import n from '../assets/bn.png';
+import b from '../assets/bb.png';
+import q from '../assets/bq.png';
+import k from '../assets/bk.png';
+
 export default {
   name: 'Room',
   components: {},
@@ -77,7 +147,33 @@ export default {
       input: '',
       opponent: '',
       reverseBoard: false,
-      board: this.$refs.board,
+      rows: [0, 1, 2, 3, 4, 5, 6, 7],
+      columns: [0, 1, 2, 3, 4, 5, 6, 7],
+      letters: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+      pieces: {
+        P,
+        R,
+        N,
+        B,
+        Q,
+        K,
+        p,
+        r,
+        n,
+        b,
+        q,
+        k,
+      },
+      piecePlacement: [
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+      ],
     };
   },
   methods: {
@@ -93,29 +189,24 @@ export default {
       }).catch(console.error);
       this.input = '';
     },
-    createBoard() {
-      //let boardElement = document.getElementById('board');
-      let rows = '';
-      for (let y = 0; y < 8; y += 1) {
-        rows += `<div class="row" id=${y}>`;
-        for (let x = 0; x < 8; x += 1) {
-          rows += `<div class="col" id=${x + y * 8} style="background: ${
-            (x + y * 8) % 2 === 0 ? '#E2E5BE' : '#58793B'
-          }">`;
-          // #BFD01A // Gul - Flytta
-          rows += `-</div>`;
+    updatePiecePlacement() {
+      if (this.game !== null) {
+        let row = 0;
+        let col = 0;
+        const pieces = this.game.gameState.slice(' ')[0];
+        for (let i = 0; i < pieces.length; i += 1) {
+          if (pieces.charAt[i] === '/') {
+            row += 1;
+            col = 0;
+          } else if (isNaN(pieces.charAt[i]) === false) {
+            col += Number(pieces.charAt[i]);
+          }
         }
-        rows += '</div>';
+        console.log(row + col);
       }
-      console.log(this.$refs);
-      /* this.board.innerHTML = rows; */
     },
   },
   created() {
-    this.createBoard();
-    /* this.board = Chessboard('myBoard', 'start');
-    console.log('board: ', this.board); */
-
     fetch(`/api/room/${this.room}/join`)
       .then((resp) => {
         if (!resp.ok) {
