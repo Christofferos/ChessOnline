@@ -210,7 +210,14 @@ export default {
         let row = 0;
         let col = 0;
         this.piecePlacement = this.emptyPiecePlacement;
-        const pieces = this.game.gameState.split(' ')[0];
+        let pieces = this.game.gameState.split(' ')[0];
+        if (this.reverseBoard) {
+          pieces = pieces
+            .split('')
+            .reverse()
+            .join('');
+        }
+        console.log(pieces);
         for (let i = 0; i < pieces.length; i += 1) {
           if (pieces.charAt(i) === '/') {
             row += 1;
