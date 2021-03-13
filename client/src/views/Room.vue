@@ -17,23 +17,28 @@
           class="row"
           v-for="row in rows"
           :key="row"
-          v-bind:id="row"
+          v-bind:id="reverseBoard ? 7 - row : row"
           v-bind:style="{ display: 'flex', flexDirection: 'row' }"
         >
           <span
             class="col"
             v-for="col in columns"
             :key="col"
-            v-bind:id="col"
+            v-bind:id="reverseBoard ? 7 - col : col"
             v-bind:style="{
               background: (col + row) % 2 === 0 ? '#E2E5BE' : '#58793B',
               display: 'flex',
               justifyContent: 'space-between',
               height: '100px',
               width: '100px',
+              cursor: 'pointer',
             }"
           >
-            <img :src="pieces.P" style="width: 100px; position: absolute;" />
+            <img
+              v-if="piecePlacement[row][col] !== ''"
+              :src="pieces[piecePlacement[row][col]]"
+              style="width: 100px; position: absolute;"
+            />
             <span
               v-if="reverseBoard === false"
               v-bind:style="{
@@ -174,6 +179,16 @@ export default {
         ['', '', '', '', '', '', '', ''],
         ['', '', '', '', '', '', '', ''],
       ],
+      emptyPiecePlacement: [
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+      ],
     };
   },
   methods: {
@@ -190,19 +205,27 @@ export default {
       this.input = '';
     },
     updatePiecePlacement() {
+      console.log('update piece placement');
       if (this.game !== null) {
         let row = 0;
         let col = 0;
-        const pieces = this.game.gameState.slice(' ')[0];
+        this.piecePlacement = this.emptyPiecePlacement;
+        const pieces = this.game.gameState.split(' ')[0];
         for (let i = 0; i < pieces.length; i += 1) {
-          if (pieces.charAt[i] === '/') {
+          if (pieces.charAt(i) === '/') {
             row += 1;
             col = 0;
-          } else if (isNaN(pieces.charAt[i]) === false) {
-            col += Number(pieces.charAt[i]);
+          } else if (pieces.charAt(i).match('[rnbqkpRNBQKP]')) {
+            this.piecePlacement[row][col] = pieces.charAt(i);
+            col += 1;
+          } else {
+            col += Number(pieces.charAt(i));
           }
         }
         console.log(row + col);
+        console.log(this.piecePlacement);
+        console.log(this.game.gameState);
+        console.log(pieces);
       }
     },
   },
@@ -221,6 +244,7 @@ export default {
         } else if (data.game.player2 === this.$store.state.cookie.username) {
           this.opponent = data.game.player1;
         }
+        this.updatePiecePlacement();
       })
       .catch(console.error);
 
