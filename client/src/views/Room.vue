@@ -25,8 +25,14 @@
             v-for="col in columns"
             :key="col"
             v-bind:id="reverseBoard ? 7 - col : col"
+            v-on:click="() => checkSelectedPiece(row, col)"
             v-bind:style="{
-              background: (col + row) % 2 === 0 ? '#E2E5BE' : '#58793B',
+              background:
+                selectedPiece === row.toString() + col.toString()
+                  ? 'yellow'
+                  : (col + row) % 2 === 0
+                  ? '#E2E5BE'
+                  : '#58793B',
               display: 'flex',
               justifyContent: 'space-between',
               height: '100px',
@@ -152,6 +158,8 @@ export default {
       input: '',
       opponent: '',
       reverseBoard: false,
+      black: false,
+      selectedPiece: '',
       rows: [0, 1, 2, 3, 4, 5, 6, 7],
       columns: [0, 1, 2, 3, 4, 5, 6, 7],
       letters: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
@@ -235,6 +243,32 @@ export default {
         console.log(pieces);
       }
     },
+    checkSelectedPiece(row, col) {
+      if (this.piecePlacement[row][col].match('[rnbqkp]') && this.black) {
+        this.selectedPiece = row.toString() + col.toString();
+      } else if (this.piecePlacement[row][col].match('[RNBQKP]') && this.black === false) {
+        this.selectedPiece = row.toString() + col.toString();
+      } else if (this.selectedPiece !== '') {
+        fetch('/api/movePiece', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: this.game.id,
+            startPos: this.selectedPiece,
+            endPos: row.toString() + col.toString(),
+          }),
+        })
+          .then((resp) => {
+            if (!resp.ok) {
+              throw new Error(`Unexpected failure when moving piece room: ${this.room}`);
+            }
+            return resp;
+          })
+          .catch(console.error);
+      }
+    },
   },
   created() {
     fetch(`/api/room/${this.room}/join`)
@@ -266,6 +300,7 @@ export default {
       if (this.$store.state.cookie.username !== players.player1) {
         this.opponent = players.player1;
         this.reverseBoard = true;
+        this.black = true;
       } else if (this.$store.state.cookie.username !== players.player2) {
         this.opponent = players.player2;
       }
