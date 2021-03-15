@@ -160,10 +160,6 @@ exports.addLiveGame = (id, player1) => {
   exports.io.emit('newRoom', games[id]);
 };
 
-exports.movePiece = (id, startPos, endPos) => {
-  return false;
-};
-
 /**
  * Returns all the LiveGame:s.
  * @returns {LiveGame[]}
@@ -195,3 +191,23 @@ exports.removeLiveGame = id => {
  * @returns {LiveGame}
  */
 exports.findLiveGame = id => games[id];
+
+const { Chess } = require('./chess.js');
+const chess = new Chess();
+
+exports.movePiece = (gameId, startPos, endPos) => {
+  console.log(chess.ascii());
+  console.log(startPos, endPos);
+  chess.move({ from: startPos, to: endPos });
+  console.log(chess.ascii());
+  /* 
+  const fen = .movePiece(gameId, startPos, endPos);
+  db.serialize(async () => {
+    // Update gameState in db
+    const statement = db.prepare('UPDATE liveGames SET gameState = (?) WHERE id = (?)');
+    statement.run(fen, req.body.id);
+  }); 
+  */
+
+  exports.io.emit('movePieceResponse');
+};

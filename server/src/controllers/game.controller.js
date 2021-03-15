@@ -25,20 +25,6 @@ router.post('/newGame', (req, res) => {
   res.json({ gameId });
 });
 
-router.post('/movePiece', (req, res) => {
-  console.log('request to move piece');
-  /* console.log('Game ID: ', req.body.id);
-  console.log('Start pos: ', req.body.startPos);
-  console.log('End pos: ', req.body.endPos); */
-  const fen = model.movePiece(req.body.id, req.body.startPos, req.body.endPos);
-  db.serialize(async () => {
-    // Update gameState in db
-    const statement = db.prepare('UPDATE liveGames SET gameState = (?) WHERE id = (?)');
-    statement.run(fen, req.body.id);
-  });
-  res.status(200).json({ success });
-});
-
 router.delete('/removeGame', (req, res) => {
   console.log('remove game');
   model.removeLiveGame(req.body.id);

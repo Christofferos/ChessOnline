@@ -16,8 +16,8 @@
         <div
           class="row"
           v-for="row in rows"
-          :key="row"
-          v-bind:id="reverseBoard ? 7 - row : row"
+          :key="reverseBoard ? row : 7 - row"
+          v-bind:id="reverseBoard ? row : 7 - row"
           v-bind:style="{ display: 'flex', flexDirection: 'row' }"
         >
           <span
@@ -25,14 +25,22 @@
             v-for="col in columns"
             :key="col"
             v-bind:id="reverseBoard ? 7 - col : col"
-            v-on:click="() => checkSelectedPiece(row, col)"
+            v-on:click="
+              () => checkSelectedPiece(reverseBoard ? row : 7 - row, reverseBoard ? 7 - col : col)
+            "
             v-bind:style="{
-              background:
-                selectedPiece === row.toString() + col.toString()
+              background: reverseBoard
+                ? selectedPiece === row.toString() + (7 - col).toString()
                   ? 'yellow'
                   : (col + row) % 2 === 0
                   ? '#E2E5BE'
-                  : '#58793B',
+                  : '#58793B'
+                : selectedPiece === (7 - row).toString() + col.toString()
+                ? 'yellow'
+                : (col + row) % 2 === 0
+                ? '#E2E5BE'
+                : '#58793B',
+
               display: 'flex',
               justifyContent: 'space-between',
               height: '100px',
@@ -45,6 +53,7 @@
               :src="pieces[piecePlacement[row][col]]"
               style="width: 100px; position: absolute;"
             />
+
             <span
               v-if="reverseBoard === false"
               v-bind:style="{
@@ -52,9 +61,8 @@
                 color: row % 2 === 0 ? '#58793B' : '#E2E5BE',
                 fontWeight: 800,
               }"
-              >{{ row + 1 }}
+              >{{ 8 - row }}
             </span>
-
             <span
               v-if="reverseBoard"
               v-bind:style="{
@@ -62,8 +70,9 @@
                 color: row % 2 === 0 ? '#58793B' : '#E2E5BE',
                 fontWeight: 800,
               }"
-              >{{ 8 - row }}</span
+              >{{ row + 1 }}</span
             >
+
             <span
               v-bind:style="{
                 display: 'flex',
@@ -243,30 +252,26 @@ export default {
         console.log(pieces);
       }
     },
+    translateSelectedPiece(row, col) {
+      const rank = Number(row) + 1;
+      const file = this.letters[Number(col)];
+      return file.toString() + rank.toString();
+    },
     checkSelectedPiece(row, col) {
-      if (this.piecePlacement[row][col].match('[rnbqkp]') && this.black) {
+      console.log(row, col);
+      console.log(this.piecePlacement);
+      console.log(this.piecePlacement[7 - row][col]);
+      if (this.piecePlacement[7 - row][col].match('[rnbqkp]') && this.black) {
         this.selectedPiece = row.toString() + col.toString();
-      } else if (this.piecePlacement[row][col].match('[RNBQKP]') && this.black === false) {
+      } else if (this.piecePlacement[7 - row][col].match('[RNBQKP]') && this.black === false) {
         this.selectedPiece = row.toString() + col.toString();
       } else if (this.selectedPiece !== '') {
-        fetch('/api/movePiece', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            id: this.game.id,
-            startPos: this.selectedPiece,
-            endPos: row.toString() + col.toString(),
-          }),
-        })
-          .then((resp) => {
-            if (!resp.ok) {
-              throw new Error(`Unexpected failure when moving piece room: ${this.room}`);
-            }
-            return resp;
-          })
-          .catch(console.error);
+        this.socket.emit(
+          'movePiece',
+          this.game.id,
+          this.translateSelectedPiece(this.selectedPiece.charAt(0), this.selectedPiece.charAt(1)),
+          this.translateSelectedPiece(row.toString(), col.toString()),
+        );
       }
     },
   },
@@ -290,6 +295,7 @@ export default {
       .catch(console.error);
 
     this.socket = this.$root.socket;
+
     this.socket.on('msg', (msg) => {
       this.entries = [msg, ...this.entries];
     });
@@ -305,6 +311,8 @@ export default {
         this.opponent = players.player2;
       }
     });
+
+    this.socket.on('movePieceResponse', () => console.log('movePieceResponse?'));
   },
   beforeDestroy() {
     if (this.opponent === '') {
