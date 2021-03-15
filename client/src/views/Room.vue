@@ -16,30 +16,23 @@
         <div
           class="row"
           v-for="row in rows"
-          :key="reverseBoard ? row : 7 - row"
-          v-bind:id="reverseBoard ? row : 7 - row"
+          :key="row"
+          v-bind:id="row"
           v-bind:style="{ display: 'flex', flexDirection: 'row' }"
         >
           <span
             class="col"
             v-for="col in columns"
             :key="col"
-            v-bind:id="reverseBoard ? 7 - col : col"
-            v-on:click="
-              () => checkSelectedPiece(reverseBoard ? row : 7 - row, reverseBoard ? 7 - col : col)
-            "
+            v-bind:id="col"
+            v-on:click="() => checkSelectedPiece(row, col)"
             v-bind:style="{
-              background: reverseBoard
-                ? selectedPiece === row.toString() + (7 - col).toString()
+              background:
+                selectedPiece === row.toString() + col.toString()
                   ? 'yellow'
                   : (col + row) % 2 === 0
                   ? '#E2E5BE'
-                  : '#58793B'
-                : selectedPiece === (7 - row).toString() + col.toString()
-                ? 'yellow'
-                : (col + row) % 2 === 0
-                ? '#E2E5BE'
-                : '#58793B',
+                  : '#58793B',
 
               display: 'flex',
               justifyContent: 'space-between',
@@ -55,7 +48,6 @@
             />
 
             <span
-              v-if="reverseBoard === false"
               v-bind:style="{
                 opacity: col === 0 ? 1 : 0,
                 color: row % 2 === 0 ? '#58793B' : '#E2E5BE',
@@ -64,16 +56,7 @@
               >{{ 8 - row }}
             </span>
             <span
-              v-if="reverseBoard"
-              v-bind:style="{
-                opacity: col === 0 ? 1 : 0,
-                color: row % 2 === 0 ? '#58793B' : '#E2E5BE',
-                fontWeight: 800,
-              }"
-              >{{ row + 1 }}</span
-            >
-
-            <span
+              v-if="row === 7"
               v-bind:style="{
                 display: 'flex',
                 alignItems: 'flex-end',
@@ -81,19 +64,7 @@
                 fontWeight: 1000,
                 paddingRight: '3px',
               }"
-              v-if="reverseBoard === false && row === 7"
               >{{ letters[col] }}</span
-            >
-            <span
-              v-bind:style="{
-                display: 'flex',
-                alignItems: 'flex-end',
-                color: col % 2 !== 0 ? '#58793B' : '#E2E5BE',
-                fontWeight: 1000,
-                paddingRight: '3px',
-              }"
-              v-if="reverseBoard && row === 7"
-              >{{ letters[7 - col] }}</span
             >
           </span>
         </div>
@@ -166,7 +137,6 @@ export default {
       socket: null,
       input: '',
       opponent: '',
-      reverseBoard: false,
       black: false,
       selectedPiece: '',
       rows: [0, 1, 2, 3, 4, 5, 6, 7],
@@ -196,16 +166,6 @@ export default {
         ['', '', '', '', '', '', '', ''],
         ['', '', '', '', '', '', '', ''],
       ],
-      emptyPiecePlacement: [
-        ['', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', ''],
-      ],
     };
   },
   methods: {
@@ -226,15 +186,18 @@ export default {
       if (this.game !== null) {
         let row = 0;
         let col = 0;
-        this.piecePlacement = this.emptyPiecePlacement;
-        let pieces = this.game.gameState.split(' ')[0];
-        if (this.reverseBoard) {
-          pieces = pieces
-            .split('')
-            .reverse()
-            .join('');
-        }
-        console.log(pieces);
+        this.piecePlacement = [
+          ['', '', '', '', '', '', '', ''],
+          ['', '', '', '', '', '', '', ''],
+          ['', '', '', '', '', '', '', ''],
+          ['', '', '', '', '', '', '', ''],
+          ['', '', '', '', '', '', '', ''],
+          ['', '', '', '', '', '', '', ''],
+          ['', '', '', '', '', '', '', ''],
+          ['', '', '', '', '', '', '', ''],
+        ];
+        const pieces = this.game.fen.split(' ')[0];
+        console.log('PIECES: ', pieces);
         for (let i = 0; i < pieces.length; i += 1) {
           if (pieces.charAt(i) === '/') {
             row += 1;
@@ -243,35 +206,43 @@ export default {
             this.piecePlacement[row][col] = pieces.charAt(i);
             col += 1;
           } else {
+            for (let j = 0; j < Number(pieces.charAt(i)); j += 1) {
+              this.piecePlacement[row][col + j] = '';
+            }
             col += Number(pieces.charAt(i));
           }
         }
-        console.log(row + col);
+        console.log('row: ', row);
+        console.log('column: ', col);
         console.log(this.piecePlacement);
-        console.log(this.game.gameState);
         console.log(pieces);
       }
     },
     translateSelectedPiece(row, col) {
-      const rank = Number(row) + 1;
+      const rank = 8 - Number(row);
       const file = this.letters[Number(col)];
       return file.toString() + rank.toString();
     },
     checkSelectedPiece(row, col) {
       console.log(row, col);
       console.log(this.piecePlacement);
-      console.log(this.piecePlacement[7 - row][col]);
-      if (this.piecePlacement[7 - row][col].match('[rnbqkp]') && this.black) {
-        this.selectedPiece = row.toString() + col.toString();
-      } else if (this.piecePlacement[7 - row][col].match('[RNBQKP]') && this.black === false) {
-        this.selectedPiece = row.toString() + col.toString();
-      } else if (this.selectedPiece !== '') {
-        this.socket.emit(
-          'movePiece',
-          this.game.id,
-          this.translateSelectedPiece(this.selectedPiece.charAt(0), this.selectedPiece.charAt(1)),
-          this.translateSelectedPiece(row.toString(), col.toString()),
-        );
+
+      if (this.opponent !== '') {
+        if (this.piecePlacement[row][col].match('[rnbqkp]') && this.black) {
+          this.selectedPiece = row.toString() + col.toString();
+        } else if (this.piecePlacement[row][col].match('[RNBQKP]') && this.black === false) {
+          this.selectedPiece = row.toString() + col.toString();
+        } else if (this.selectedPiece !== '') {
+          this.socket.emit(
+            'movePiece',
+            this.game.id,
+            this.translateSelectedPiece(
+              this.selectedPiece.charAt(0),
+              this.selectedPiece.charAt(1),
+            ),
+            this.translateSelectedPiece(row.toString(), col.toString()),
+          );
+        }
       }
     },
   },
@@ -291,6 +262,7 @@ export default {
           this.opponent = data.game.player1;
         }
         this.updatePiecePlacement();
+        console.log('CREATED PIECE PLACEMENT: ', this.piecePlacement);
       })
       .catch(console.error);
 
@@ -305,14 +277,18 @@ export default {
       console.log('Store username: ', this.$store.state.cookie.username);
       if (this.$store.state.cookie.username !== players.player1) {
         this.opponent = players.player1;
-        this.reverseBoard = true;
         this.black = true;
       } else if (this.$store.state.cookie.username !== players.player2) {
         this.opponent = players.player2;
       }
     });
 
-    this.socket.on('movePieceResponse', () => console.log('movePieceResponse?'));
+    this.socket.on('movePieceResponse', (newFen) => {
+      this.selectedPiece = '';
+      console.log('newFen ', newFen);
+      this.game.fen = newFen;
+      this.updatePiecePlacement();
+    });
   },
   beforeDestroy() {
     if (this.opponent === '') {

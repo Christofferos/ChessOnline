@@ -57,7 +57,7 @@ const gamesInit = () => {
     db.each('SELECT * FROM liveGames', (err, row) => {
       games[row.id] = new LiveGame(
         row.id,
-        row.gameState,
+        row.gameState, //
         row.player1,
         row.player2,
         row.timeLeft1,
@@ -192,22 +192,19 @@ exports.removeLiveGame = id => {
  */
 exports.findLiveGame = id => games[id];
 
-const { Chess } = require('./chess.js');
-const chess = new Chess();
-
 exports.movePiece = (gameId, startPos, endPos) => {
-  console.log(chess.ascii());
+  const game = games[gameId];
+  console.log(game.gameState.ascii());
   console.log(startPos, endPos);
-  chess.move({ from: startPos, to: endPos });
-  console.log(chess.ascii());
-  /* 
-  const fen = .movePiece(gameId, startPos, endPos);
-  db.serialize(async () => {
+  game.gameState.move({ from: startPos, to: endPos });
+  console.log(game.gameState.ascii());
+
+  /* db.serialize(async () => {
     // Update gameState in db
     const statement = db.prepare('UPDATE liveGames SET gameState = (?) WHERE id = (?)');
     statement.run(fen, req.body.id);
-  }); 
-  */
+  });  */
 
-  exports.io.emit('movePieceResponse');
+  game.fen = game.gameState.fen();
+  exports.io.in(gameId).emit('movePieceResponse', game.fen);
 };

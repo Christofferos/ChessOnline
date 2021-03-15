@@ -1,10 +1,12 @@
+const { Chess } = require('../chess.js');
+
 /**
  * @class LiveGame
  */
 class LiveGame {
-  constructor(id, gameState, player1, player2, timeLeft1, timeLeft2) {
+  constructor(id, fen, player1, player2, timeLeft1, timeLeft2) {
     this.id = id; // (Number)
-    if (gameState === undefined) {
+    if (fen === undefined) {
       /*
       1. Piece placement (/ === next rank on the board)
       2. Turn
@@ -13,10 +15,11 @@ class LiveGame {
       5. Halfmove clock (no capture, no pawn advancement. 50-move-rule)
       6. Fullmove clock
       */
-      this.gameState = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+      this.gameState = new Chess();
     } else {
-      this.gameState = gameState;
+      this.gameState = new Chess(fen);
     }
+    this.fen = this.gameState.fen();
     if (player1 === undefined) {
       this.player1 = '';
     } else {
