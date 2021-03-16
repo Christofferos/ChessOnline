@@ -44,6 +44,7 @@ router.get('/room/:room/join', (req, res) => {
   const game = model.findLiveGame(req.params.room.trim());
   const user = model.findUser(req.session.userID);
   user.currentRoom = game.id;
+  console.log('Game: ', game);
   user.socket.join(user.currentRoom);
 
   if (game.player2 === '' && game.player1 !== req.session.userID) {

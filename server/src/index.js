@@ -107,6 +107,10 @@ io.on('connection', socket => {
 
   // ### Client listeners: ###
   socket.on('movePiece', (gameId, startPos, endPos) => model.movePiece(gameId, startPos, endPos));
+
+  socket.on('updateTimers', (gameId, timer1, timer2) =>
+    model.updateTimers(gameId, timer1, timer2),
+  );
 });
 
 // Start server

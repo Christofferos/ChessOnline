@@ -28,7 +28,7 @@ class LiveGame {
     if (player2 === undefined) {
       this.player2 = '';
     } else {
-      this.player2 = player1;
+      this.player2 = player2;
     }
     if (timeLeft1 === undefined) {
       this.timeLeft1 = 180;

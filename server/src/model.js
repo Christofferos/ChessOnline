@@ -55,9 +55,11 @@ const gamesInit = () => {
   db.serialize(() => {
     games = {};
     db.each('SELECT * FROM liveGames', (err, row) => {
+      console.log('gameID: ', row.id);
+      console.log('fen: ', row.currentGame);
       games[row.id] = new LiveGame(
         row.id,
-        row.gameState, //
+        row.currentGame,
         row.player1,
         row.player2,
         row.timeLeft1,
@@ -171,7 +173,11 @@ exports.getLiveGames = () => Object.values(games);
  * @returns {LiveGame[]}
  */
 exports.getLiveGames = userID =>
-  Object.values(games).filter(game => game.player1 === userID || game.player2 === userID);
+  Object.values(games).filter(game => {
+    console.log('Game: ', game);
+    console.log('UserID: ', userID);
+    return game.player1 === userID || game.player2 === userID;
+  });
 
 /**
  * Removes the liveGame object with the matching id.
@@ -199,12 +205,38 @@ exports.movePiece = (gameId, startPos, endPos) => {
   game.gameState.move({ from: startPos, to: endPos });
   console.log(game.gameState.ascii());
 
-  /* db.serialize(async () => {
-    // Update gameState in db
-    const statement = db.prepare('UPDATE liveGames SET gameState = (?) WHERE id = (?)');
-    statement.run(fen, req.body.id);
-  });  */
-
   game.fen = game.gameState.fen();
-  exports.io.in(gameId).emit('movePieceResponse', game.fen);
+  console.log('GAME FEN: ', game.fen);
+
+  db.serialize(async () => {
+    // Update gameState in db
+    const statement = db.prepare('UPDATE liveGames SET currentGame = (?) WHERE id = (?)');
+    statement.run(game.fen, gameId);
+  });
+
+  exports.io
+    .in(gameId)
+    .emit(
+      'movePieceResponse',
+      game.fen,
+      game.gameState.game_over(),
+      game.gameState.in_draw(),
+      game.gameState.in_stalemate(),
+      game.gameState.in_threefold_repetition(),
+      game.gameState.insufficient_material(),
+    );
+};
+
+exports.updateTimers = (gameId, timer1, timer2) => {
+  const game = games[gameId];
+  game.timeLeft1 = timer1;
+  game.timeLeft2 = timer2;
+
+  db.serialize(async () => {
+    // Update timers in db
+    const statement = db.prepare(
+      'UPDATE liveGames SET timeLeft1 = (?), timeLeft2 = (?) WHERE id = (?)',
+    );
+    statement.run(timer1, timer2, gameId);
+  });
 };

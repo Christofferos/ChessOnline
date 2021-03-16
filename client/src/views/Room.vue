@@ -6,7 +6,9 @@
     >
       <div class="row" style="text-align: center;">
         <h1 v-if="this.opponent === ''">Waiting for an opponent...</h1>
-        <h1 v-else>{{ this.opponent }}</h1>
+        <h1 v-else>
+          {{ this.black ? this.$store.state.cookie.username : this.opponent }}
+        </h1>
       </div>
 
       <div
@@ -71,7 +73,9 @@
       </div>
 
       <div class="row" style="text-align: center;">
-        <h1>{{ this.$store.state.cookie.username }}</h1>
+        <h1>
+          {{ this.black ? this.opponent : this.$store.state.cookie.username }}
+        </h1>
       </div>
 
       <div
@@ -142,6 +146,7 @@ export default {
       rows: [0, 1, 2, 3, 4, 5, 6, 7],
       columns: [0, 1, 2, 3, 4, 5, 6, 7],
       letters: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+      setIntervalObj: null,
       pieces: {
         P,
         R,
@@ -184,6 +189,24 @@ export default {
     updatePiecePlacement() {
       console.log('update piece placement');
       if (this.game !== null) {
+        /* // Timer
+        if (this.opponent) {
+          if (this.setIntervalObj !== null) clearInterval(this.setIntervalObj);
+          this.setIntervalObj = setInterval(() => {
+            if (this.game.fen.split(' ')[1] === 'w') {
+              this.game.timeLeft1 -= 1;
+            } else if (this.game.fen.split(' ')[1] === 'b') {
+              this.game.timeLeft2 -= 1;
+            }
+            this.socket.emit(
+              'updateTimers',
+              this.game.id,
+              this.game.timeLeft1,
+              this.game.timeLeft2,
+            );
+          }, 1000);
+        } */
+
         let row = 0;
         let col = 0;
         this.piecePlacement = [
@@ -260,6 +283,7 @@ export default {
           this.opponent = data.game.player2;
         } else if (data.game.player2 === this.$store.state.cookie.username) {
           this.opponent = data.game.player1;
+          this.black = true;
         }
         this.updatePiecePlacement();
         console.log('CREATED PIECE PLACEMENT: ', this.piecePlacement);
@@ -283,7 +307,26 @@ export default {
       }
     });
 
-    this.socket.on('movePieceResponse', (newFen) => {
+    this.socket.on('movePieceResponse', (newFen, gameOver, draw1, draw2, draw3, draw4) => {
+      if (gameOver) {
+        if (draw1 || draw2 || draw3 || draw4) {
+          console.log('DRAW!');
+        } else if (newFen.split(' ')[1] === 'w' && this.black) {
+          console.log('Check mate!');
+          console.log('You win!');
+        } else if (newFen.split(' ')[1] === 'w' && this.black === false) {
+          console.log('Check mate!');
+          console.log('You lose!');
+        } else if (newFen.split(' ')[1] === 'b' && this.black) {
+          console.log('Check mate!');
+          console.log('You lose!');
+        } else if (newFen.split(' ')[1] === 'b' && this.black === false) {
+          console.log('Check mate!');
+          console.log('You win!');
+        }
+
+        // TODO: Update matchHistory in db
+      }
       this.selectedPiece = '';
       console.log('newFen ', newFen);
       this.game.fen = newFen;

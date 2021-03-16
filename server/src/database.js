@@ -10,9 +10,9 @@ db.serialize(async () => {
     'CREATE TABLE liveGames (id TEXT, currentGame TEXT, player1 TEXT, player2 TEXT, timeLeft1 INTEGER, timeLeft2 INTEGER)',
   ); */
   //
-  /*
+
   console.log('Database created.');
-  db.run('DROP TABLE IF EXISTS users');
+  /* db.run('DROP TABLE IF EXISTS users');
   db.run('DROP TABLE IF EXISTS matchHistory');
   db.run('DROP TABLE IF EXISTS liveGames');
 
@@ -21,8 +21,7 @@ db.serialize(async () => {
   db.run(
     'CREATE TABLE liveGames (id TEXT, currentGame TEXT, player1 TEXT,
       player2 TEXT, timeLeft1 INTEGER, timeLeft2 INTEGER)',
-  );
-  */
+  ); */
 });
 
 module.exports = db;
