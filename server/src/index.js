@@ -111,6 +111,13 @@ io.on('connection', socket => {
   socket.on('updateTimers', (gameId, timer1, timer2) =>
     model.updateTimers(gameId, timer1, timer2),
   );
+
+  socket.on('backToMenu', gameId => {
+    model.backToMenu(gameId);
+    model.removeLiveGame(gameId);
+  });
+
+  socket.on('getMatchHistory', userId => model.getMatchHistory(userId));
 });
 
 // Start server

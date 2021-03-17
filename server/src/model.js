@@ -1,6 +1,7 @@
 /* const Room = require('./models/room.model'); */
 const User = require('./models/user.model');
 const LiveGame = require('./models/liveGame.model');
+const MatchHistory = require('./models/matchHistory.model');
 const db = require('./database');
 
 /**
@@ -8,6 +9,7 @@ const db = require('./database');
  */
 let users = {};
 let games = {};
+let matchHistory = {};
 
 /**
  * unregisteredSockets is used as a temporary pool of sockets
@@ -69,6 +71,29 @@ const gamesInit = () => {
   });
 };
 gamesInit();
+
+const matchHistoryInit = () => {
+  // Fill matchHistory with db data
+  console.log('match history init');
+  db.serialize(() => {
+    matchHistory = {};
+    db.each('SELECT * FROM matchHistory', (err, row) => {
+      if (!matchHistory[row.player1]) {
+        matchHistory[row.player1] = [];
+      }
+      if (!matchHistory[row.player2]) {
+        matchHistory[row.player2] = [];
+      }
+      matchHistory[row.player1].push(
+        new MatchHistory(row.player2, row.winner, row.nrMoves, row.date),
+      );
+      matchHistory[row.player2].push(
+        new MatchHistory(row.player1, row.winner, row.nrMoves, row.date),
+      );
+    });
+  });
+};
+matchHistoryInit();
 
 const usersInit = async () => {
   // Fill users with db data
@@ -214,6 +239,46 @@ exports.movePiece = (gameId, startPos, endPos) => {
     statement.run(game.fen, gameId);
   });
 
+  if (game.gameState.game_over()) {
+    // Update matchHistory in db
+    db.serialize(async () => {
+      if (!matchHistory[game.player1]) {
+        matchHistory[game.player1] = [];
+      }
+      if (!matchHistory[game.player2]) {
+        matchHistory[game.player2] = [];
+      }
+      matchHistory[game.player1].push(
+        new MatchHistory(game.player2, game.winner, game.nrMoves, game.date),
+      );
+      matchHistory[game.player2].push(
+        new MatchHistory(game.player1, game.winner, game.nrMoves, game.date),
+      );
+      matchHistory[game.player1].push(new MatchHistory(game.player2, game.winner, game.nrMoves));
+      matchHistory[game.player2].push(new MatchHistory(game.player1, game.winner, game.nrMoves));
+
+      const statement = db.prepare('INSERT INTO matchHistory VALUES (?, ?, ?, ?, ?)');
+      let winner;
+      if (
+        game.gameState.in_draw() ||
+        game.gameState.in_stalemate() ||
+        game.gameState.in_threefold_repetition() ||
+        game.gameState.insufficient_material()
+      ) {
+        winner = '';
+      } else {
+        winner = game.fen.split(' ')[1] === 'w' ? game.player1 : game.player2;
+      }
+      statement.run(
+        game.player1,
+        game.player2,
+        winner,
+        game.history().length,
+        new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+      );
+    });
+  }
+
   exports.io
     .in(gameId)
     .emit(
@@ -239,4 +304,16 @@ exports.updateTimers = (gameId, timer1, timer2) => {
     );
     statement.run(timer1, timer2, gameId);
   });
+};
+
+exports.backToMenu = gameId => {
+  db.serialize(async () => {
+    const statement = db.prepare('DELETE FROM liveGames WHERE id = (?)');
+    statement.run(gameId);
+  });
+  exports.io.in(gameId).emit('backToMenuResponse');
+};
+
+exports.getMatchHistory = userId => {
+  exports.io.emit('getMatchHistoryResponse', matchHistory[userId]);
 };

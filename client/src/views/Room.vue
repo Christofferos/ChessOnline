@@ -12,6 +12,37 @@
       </div>
 
       <div
+        v-bind:style="{
+          display: this.endGameMsg === '' ? 'none' : 'block',
+          width: '300px',
+          height: '150px',
+          position: 'absolute',
+          backgroundColor: 'rgba(205, 133, 63, 0.6)',
+          top: '33%',
+          left: '33%',
+          padding: '30px auto',
+          textAlign: 'center',
+          borderRadius: '5px',
+          color: 'black',
+          fontSize: '30px',
+          zIndex: '11',
+        }"
+        type="text"
+      >
+        <div v-bind:style="{ marignBottom: '10px' }">{{ this.endGameMsg }}</div>
+        <button
+          v-on:click="() => backToMenu()"
+          v-bind:style="{
+            backgroundColor: 'green',
+            border: '1px solid black',
+            borderRadius: '10px',
+          }"
+        >
+          Back to menu
+        </button>
+      </div>
+
+      <div
         id="board"
         style="display: inline-block; vertical-align: bottom; <!-- text-align: center; -->"
       >
@@ -147,6 +178,7 @@ export default {
       columns: [0, 1, 2, 3, 4, 5, 6, 7],
       letters: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
       setIntervalObj: null,
+      endGameMsg: '',
       pieces: {
         P,
         R,
@@ -174,6 +206,9 @@ export default {
     };
   },
   methods: {
+    redirect(name) {
+      this.$router.push(`/${name}`);
+    },
     send() {
       fetch(`/api/room/${this.room}/message`, {
         method: 'POST',
@@ -268,6 +303,9 @@ export default {
         }
       }
     },
+    backToMenu() {
+      this.socket.emit('backToMenu', this.room);
+    },
   },
   created() {
     fetch(`/api/room/${this.room}/join`)
@@ -296,6 +334,10 @@ export default {
       this.entries = [msg, ...this.entries];
     });
 
+    this.socket.on('backToMenuResponse', () => {
+      this.redirect('list');
+    });
+
     this.socket.on('getGamePlayers', (players) => {
       console.log('Player1 & Player2: ', players.player1, players.player2);
       console.log('Store username: ', this.$store.state.cookie.username);
@@ -311,21 +353,24 @@ export default {
       if (gameOver) {
         if (draw1 || draw2 || draw3 || draw4) {
           console.log('DRAW!');
+          this.endGameMsg = 'Draw!';
         } else if (newFen.split(' ')[1] === 'w' && this.black) {
           console.log('Check mate!');
           console.log('You win!');
+          this.endGameMsg = 'Check Mate!\n You win';
         } else if (newFen.split(' ')[1] === 'w' && this.black === false) {
           console.log('Check mate!');
           console.log('You lose!');
+          this.endGameMsg = 'Check Mate!\n You lose';
         } else if (newFen.split(' ')[1] === 'b' && this.black) {
           console.log('Check mate!');
           console.log('You lose!');
+          this.endGameMsg = 'Check Mate!\n You lose';
         } else if (newFen.split(' ')[1] === 'b' && this.black === false) {
           console.log('Check mate!');
           console.log('You win!');
+          this.endGameMsg = 'Check Mate!\n You win';
         }
-
-        // TODO: Update matchHistory in db
       }
       this.selectedPiece = '';
       console.log('newFen ', newFen);

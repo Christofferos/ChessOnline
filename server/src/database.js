@@ -9,6 +9,11 @@ db.serialize(async () => {
   db.run(
     'CREATE TABLE liveGames (id TEXT, currentGame TEXT, player1 TEXT, player2 TEXT, timeLeft1 INTEGER, timeLeft2 INTEGER)',
   ); */
+
+  /* db.run('DROP TABLE IF EXISTS matchHistory');
+  db.run(
+    'CREATE TABLE matchHistory (player1 TEXT, player2 TEXT, winner TEXT, nrMoves INTEGER, date TEXT)',
+  ); */
   //
 
   console.log('Database created.');

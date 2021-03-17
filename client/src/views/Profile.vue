@@ -28,12 +28,21 @@
       <table style="width:95%; margin: auto; text-align: center">
         <!-- Map over history with table rows -->
         <tr>
-          <th>Player</th>
-          .
+          <th>Opponent</th>
           <th>Result</th>
-          <th>Moves</th>
+          <th>Nr of Moves</th>
           <th>Date</th>
         </tr>
+        <template v-for="match in matches">
+          <tr :key="match">
+            <td>{{ match.opponent }}</td>
+            <td>
+              {{ match.winner === this.$store.state.cookie.username ? 'Win' : 'Loss' }}
+            </td>
+            <td>{{ match.nrMoves }}</td>
+            <td>{{ match.date }}</td>
+          </tr>
+        </template>
         <!-- <div class="row">-</div>
         <div class="row">-</div>
         <div class="row">-</div> -->
@@ -52,6 +61,7 @@ export default {
     return {
       currentlyLoggedIn: '',
       success: true,
+      matches: [],
     };
   },
   created() {
@@ -59,6 +69,11 @@ export default {
     console.log('User logged in: ', this.$store.state.cookie.username);
     console.log('IsAuthenticated: ', this.$store.state.isAuthenticated);
     this.$root.socket = io().connect();
+
+    this.$root.socket.emit('getMatchHistory', this.currentlyLoggedIn);
+    this.$root.socket.on('getMatchHistoryResponse', (matchHistory) => {
+      this.matches = matchHistory;
+    });
   },
   methods: {
     capitalizeFirstLetter(inputStr) {
