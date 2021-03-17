@@ -6,11 +6,9 @@
       style="width: 150px"
     />
     <h2 style="color: white">
-      {{ capitalizeFirstLetter(this.currentlyLoggedIn) }}
+      {{ capitalizeFirstLetter(currentlyLoggedIn) }}
     </h2>
-    <h4 style="color: white">
-      Experience Score: _
-    </h4>
+    <h4 style="color: white">Experience Score: {{ matches.length }}</h4>
 
     <input
       class="btn btn-default login-button"
@@ -24,21 +22,24 @@
       style="border: 2px solid black; width: 350px; margin: 75px auto 25px auto;
            background: #504F4C; border-radius: 5px; padding-bottom: 20px;"
     >
-      <h1 style="color: white">Match history:</h1>
+      <h1 style="color: white">Match History:</h1>
       <table style="width:95%; margin: auto; text-align: center">
         <!-- Map over history with table rows -->
         <tr>
-          <th>Opponent</th>
           <th>Result</th>
+          <th>Opponent</th>
           <th>Nr of Moves</th>
           <th>Date</th>
         </tr>
-        <template v-for="match in matches">
-          <tr :key="match">
-            <td>{{ match.opponent }}</td>
+        <template v-for="(match, id) in matches">
+          <tr
+            :key="id"
+            v-bind:style="{ color: match.winner === currentlyLoggedIn ? 'green' : 'red' }"
+          >
             <td>
-              {{ match.winner === this.$store.state.cookie.username ? 'Win' : 'Loss' }}
+              {{ match.winner === currentlyLoggedIn ? 'Win' : 'Loss' }}
             </td>
+            <td>{{ match.opponent }}</td>
             <td>{{ match.nrMoves }}</td>
             <td>{{ match.date }}</td>
           </tr>
@@ -62,6 +63,7 @@ export default {
       currentlyLoggedIn: '',
       success: true,
       matches: [],
+      socket: null,
     };
   },
   created() {
@@ -69,10 +71,16 @@ export default {
     console.log('User logged in: ', this.$store.state.cookie.username);
     console.log('IsAuthenticated: ', this.$store.state.isAuthenticated);
     this.$root.socket = io().connect();
+    this.socket = this.$root.socket;
 
-    this.$root.socket.emit('getMatchHistory', this.currentlyLoggedIn);
-    this.$root.socket.on('getMatchHistoryResponse', (matchHistory) => {
-      this.matches = matchHistory;
+    // Fetch:
+    this.socket.emit('getMatchHistory', this.currentlyLoggedIn);
+    this.socket.on('getMatchHistoryResponse', (matchHistory, userId) => {
+      if (this.currentlyLoggedIn === userId) {
+        this.matches = matchHistory;
+        console.log('currentlyLoggedIn: ', this.currentlyLoggedIn);
+        console.log('matches, profile: ', this.matches);
+      }
     });
   },
   methods: {
