@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * Copyright (c) 2021, Jeff Hlywa (jhlywa@gmail.com)
  * All rights reserved.
@@ -96,7 +98,12 @@ const Chess = function (fen) {
   ];
 
   const SHIFTS = {
-    p: 0, n: 1, b: 2, r: 3, q: 4, k: 5,
+    p: 0,
+    n: 1,
+    b: 2,
+    r: 3,
+    q: 4,
+    k: 5,
   };
 
   const FLAGS = {
@@ -405,10 +412,7 @@ const Chess = function (fen) {
       }
     }
 
-    if (
-      (tokens[3][1] == '3' && tokens[1] == 'w')
-      || (tokens[3][1] == '6' && tokens[1] == 'b')
-    ) {
+    if ((tokens[3][1] == '3' && tokens[1] == 'w') || (tokens[3][1] == '6' && tokens[1] == 'b')) {
       return { valid: false, error_number: 11, error: errors[11] };
     }
 
@@ -520,10 +524,7 @@ const Chess = function (fen) {
     const sq = SQUARES[square];
 
     /* don't let the user place more than one king */
-    if (
-      piece.type == KING
-      && !(kings[piece.color] == EMPTY || kings[piece.color] == sq)
-    ) {
+    if (piece.type == KING && !(kings[piece.color] == EMPTY || kings[piece.color] == sq)) {
       return false;
     }
 
@@ -574,10 +575,7 @@ const Chess = function (fen) {
   function generate_moves(options) {
     function add_move(board, moves, from, to, flags) {
       /* if pawn promotion */
-      if (
-        board[from].type === PAWN
-        && (rank(to) === RANK_8 || rank(to) === RANK_1)
-      ) {
+      if (board[from].type === PAWN && (rank(to) === RANK_8 || rank(to) === RANK_1)) {
         const pieces = [QUEEN, ROOK, BISHOP, KNIGHT];
         for (let i = 0, len = pieces.length; i < len; i++) {
           moves.push(build_move(board, from, to, flags, pieces[i]));
@@ -597,9 +595,7 @@ const Chess = function (fen) {
     let single_square = false;
 
     /* do we want legal moves? */
-    const legal = typeof options !== 'undefined' && 'legal' in options
-      ? options.legal
-      : true;
+    const legal = typeof options !== 'undefined' && 'legal' in options ? options.legal : true;
 
     /* are we generating moves for a single square? */
     if (typeof options !== 'undefined' && 'square' in options) {
@@ -682,11 +678,11 @@ const Chess = function (fen) {
         var castling_to = castling_from + 2;
 
         if (
-          board[castling_from + 1] == null
-          && board[castling_to] == null
-          && !attacked(them, kings[us])
-          && !attacked(them, castling_from + 1)
-          && !attacked(them, castling_to)
+          board[castling_from + 1] == null &&
+          board[castling_to] == null &&
+          !attacked(them, kings[us]) &&
+          !attacked(them, castling_from + 1) &&
+          !attacked(them, castling_to)
         ) {
           add_move(board, moves, kings[us], castling_to, BITS.KSIDE_CASTLE);
         }
@@ -698,12 +694,12 @@ const Chess = function (fen) {
         var castling_to = castling_from - 2;
 
         if (
-          board[castling_from - 1] == null
-          && board[castling_from - 2] == null
-          && board[castling_from - 3] == null
-          && !attacked(them, kings[us])
-          && !attacked(them, castling_from - 1)
-          && !attacked(them, castling_to)
+          board[castling_from - 1] == null &&
+          board[castling_from - 2] == null &&
+          board[castling_from - 3] == null &&
+          !attacked(them, kings[us]) &&
+          !attacked(them, castling_from - 1) &&
+          !attacked(them, castling_to)
         ) {
           add_move(board, moves, kings[us], castling_to, BITS.QSIDE_CASTLE);
         }
@@ -873,13 +869,15 @@ const Chess = function (fen) {
     /* k vs. k */
     if (num_pieces === 2) {
       return true;
-    } if (
+    }
+    if (
       /* k vs. kn .... or .... k vs. kb */
-      num_pieces === 3
-      && (pieces[BISHOP] === 1 || pieces[KNIGHT] === 1)
+      num_pieces === 3 &&
+      (pieces[BISHOP] === 1 || pieces[KNIGHT] === 1)
     ) {
       return true;
-    } if (num_pieces === pieces[BISHOP] + 2) {
+    }
+    if (num_pieces === pieces[BISHOP] + 2) {
       /* kb vs. kb where any number of bishops are all on the same color */
       let sum = 0;
       const len = bishops.length;
@@ -913,10 +911,7 @@ const Chess = function (fen) {
     while (true) {
       /* remove the last two fields in the FEN string, they're not needed
        * when checking for draw by rep */
-      const fen = generate_fen()
-        .split(' ')
-        .slice(0, 4)
-        .join(' ');
+      const fen = generate_fen().split(' ').slice(0, 4).join(' ');
 
       /* has the position occurred three or move times */
       positions[fen] = fen in positions ? positions[fen] + 1 : 1;
@@ -991,10 +986,7 @@ const Chess = function (fen) {
     /* turn off castling if we move a rook */
     if (castling[us]) {
       for (var i = 0, len = ROOKS[us].length; i < len; i++) {
-        if (
-          move.from === ROOKS[us][i].square
-          && castling[us] & ROOKS[us][i].flag
-        ) {
+        if (move.from === ROOKS[us][i].square && castling[us] & ROOKS[us][i].flag) {
           castling[us] ^= ROOKS[us][i].flag;
           break;
         }
@@ -1004,10 +996,7 @@ const Chess = function (fen) {
     /* turn off castling if we capture a rook */
     if (castling[them]) {
       for (var i = 0, len = ROOKS[them].length; i < len; i++) {
-        if (
-          move.to === ROOKS[them][i].square
-          && castling[them] & ROOKS[them][i].flag
-        ) {
+        if (move.to === ROOKS[them][i].square && castling[them] & ROOKS[them][i].flag) {
           castling[them] ^= ROOKS[them][i].flag;
           break;
         }
@@ -1074,8 +1063,8 @@ const Chess = function (fen) {
     }
 
     if (move.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE)) {
-      let castling_to; let
-        castling_from;
+      let castling_to;
+      let castling_from;
       if (move.flags & BITS.KSIDE_CASTLE) {
         castling_to = move.to + 1;
         castling_from = move.to - 1;
@@ -1130,7 +1119,8 @@ const Chess = function (fen) {
        */
       if (same_rank > 0 && same_file > 0) {
         return algebraic(from);
-      } if (same_file > 0) {
+      }
+      if (same_file > 0) {
         /* if the moving piece rests on the same file, use the rank symbol as the
          * disambiguator
          */
@@ -1180,9 +1170,7 @@ const Chess = function (fen) {
     // if we're using the sloppy parser run a regex to grab piece, to, and from
     // this should parse invalid SAN like: Pe2-e4, Rc1c4, Qf3xf7
     if (sloppy) {
-      var matches = clean_move.match(
-        /([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/,
-      );
+      var matches = clean_move.match(/([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/);
       if (matches) {
         var piece = matches[1];
         var from = matches[2];
@@ -1196,17 +1184,17 @@ const Chess = function (fen) {
       // try the strict parser first, then the sloppy parser if requested
       // by the user
       if (
-        clean_move === stripped_san(move_to_san(moves[i]))
-        || (sloppy && clean_move === stripped_san(move_to_san(moves[i], true)))
+        clean_move === stripped_san(move_to_san(moves[i])) ||
+        (sloppy && clean_move === stripped_san(move_to_san(moves[i], true)))
       ) {
         return moves[i];
       }
       if (
-        matches
-          && (!piece || piece.toLowerCase() == moves[i].piece)
-          && SQUARES[from] == moves[i].from
-          && SQUARES[to] == moves[i].to
-          && (!promotion || promotion.toLowerCase() == moves[i].promotion)
+        matches &&
+        (!piece || piece.toLowerCase() == moves[i].piece) &&
+        SQUARES[from] == moves[i].from &&
+        SQUARES[to] == moves[i].to &&
+        (!promotion || promotion.toLowerCase() == moves[i].promotion)
       ) {
         return moves[i];
       }
@@ -1329,7 +1317,7 @@ const Chess = function (fen) {
         keys.push(algebraic(i));
       }
       return keys;
-    }()),
+    })(),
     FLAGS,
 
     /** *************************************************************************
@@ -1357,11 +1345,7 @@ const Chess = function (fen) {
         /* does the user want a full move object (most likely not), or just
          * SAN
          */
-        if (
-          typeof options !== 'undefined'
-          && 'verbose' in options
-          && options.verbose
-        ) {
+        if (typeof options !== 'undefined' && 'verbose' in options && options.verbose) {
           moves.push(make_pretty(ugly_moves[i]));
         } else {
           moves.push(move_to_san(ugly_moves[i], false));
@@ -1385,10 +1369,7 @@ const Chess = function (fen) {
 
     in_draw() {
       return (
-        half_moves >= 100
-        || in_stalemate()
-        || insufficient_material()
-        || in_threefold_repetition()
+        half_moves >= 100 || in_stalemate() || insufficient_material() || in_threefold_repetition()
       );
     },
 
@@ -1402,11 +1383,11 @@ const Chess = function (fen) {
 
     game_over() {
       return (
-        half_moves >= 100
-        || in_checkmate()
-        || in_stalemate()
-        || insufficient_material()
-        || in_threefold_repetition()
+        half_moves >= 100 ||
+        in_checkmate() ||
+        in_stalemate() ||
+        insufficient_material() ||
+        in_threefold_repetition()
       );
     },
 
@@ -1442,12 +1423,14 @@ const Chess = function (fen) {
       /* using the specification from http://www.chessclub.com/help/PGN-spec
        * example for html usage: .pgn({ max_width: 72, newline_char: "<br />" })
        */
-      const newline = typeof options === 'object' && typeof options.newline_char === 'string'
-        ? options.newline_char
-        : '\n';
-      const max_width = typeof options === 'object' && typeof options.max_width === 'number'
-        ? options.max_width
-        : 0;
+      const newline =
+        typeof options === 'object' && typeof options.newline_char === 'string'
+          ? options.newline_char
+          : '\n';
+      const max_width =
+        typeof options === 'object' && typeof options.max_width === 'number'
+          ? options.max_width
+          : 0;
       const result = [];
       let header_exists = false;
 
@@ -1588,9 +1571,8 @@ const Chess = function (fen) {
     load_pgn(pgn, options) {
       // allow the user to specify the sloppy move parser to work around over
       // disambiguation bugs in Fritz and Chessbase
-      const sloppy = typeof options !== 'undefined' && 'sloppy' in options
-        ? options.sloppy
-        : false;
+      const sloppy =
+        typeof options !== 'undefined' && 'sloppy' in options ? options.sloppy : false;
 
       function mask(str) {
         return str.replace(/\\/g, '\\');
@@ -1604,10 +1586,10 @@ const Chess = function (fen) {
       }
 
       function parse_pgn_header(header, options) {
-        const newline_char = typeof options === 'object'
-          && typeof options.newline_char === 'string'
-          ? options.newline_char
-          : '\r?\n';
+        const newline_char =
+          typeof options === 'object' && typeof options.newline_char === 'string'
+            ? options.newline_char
+            : '\r?\n';
         const header_obj = {};
         const headers = header.split(new RegExp(mask(newline_char)));
         let key = '';
@@ -1624,26 +1606,20 @@ const Chess = function (fen) {
         return header_obj;
       }
 
-      const newline_char = typeof options === 'object' && typeof options.newline_char === 'string'
-        ? options.newline_char
-        : '\r?\n';
+      const newline_char =
+        typeof options === 'object' && typeof options.newline_char === 'string'
+          ? options.newline_char
+          : '\r?\n';
 
       // RegExp to split header. Takes advantage of the fact that header and movetext
       // will always have a blank line between them (ie, two newline_char's).
       // With default newline_char, will equal: /^(\[((?:\r?\n)|.)*\])(?:\r?\n){2}/
       const header_regex = new RegExp(
-        `^(\\[((?:${
-          mask(newline_char)
-        })|.)*\\])`
-          + `(?:${
-            mask(newline_char)
-          }){2}`,
+        `^(\\[((?:${mask(newline_char)})|.)*\\])` + `(?:${mask(newline_char)}){2}`,
       );
 
       // If no header given, begin with moves.
-      const header_string = header_regex.test(pgn)
-        ? header_regex.exec(pgn)[1]
-        : '';
+      const header_string = header_regex.test(pgn) ? header_regex.exec(pgn)[1] : '';
 
       // Put the board in the starting position
       reset();
@@ -1674,14 +1650,14 @@ const Chess = function (fen) {
        * as a convenience for modern users */
 
       const to_hex = function (string) {
-        return Array
-          .from(string)
-          .map((c) =>
+        return Array.from(string)
+          .map(c =>
             /* encodeURI doesn't transform most ASCII characters,
              * so we handle these ourselves */
-            (c.charCodeAt(0) < 128
+            c.charCodeAt(0) < 128
               ? c.charCodeAt(0).toString(16)
-              : encodeURIComponent(c).replace(/\%/g, '').toLowerCase()))
+              : encodeURIComponent(c).replace(/\%/g, '').toLowerCase(),
+          )
           .join('');
       };
 
@@ -1708,9 +1684,10 @@ const Chess = function (fen) {
         .replace(
           /* encode comments so they don't get deleted below */
           new RegExp(`(\{[^}]*\})+?|;([^${mask(newline_char)}]*)`, 'g'),
-          (match, bracket, semicolon) => (bracket !== undefined
-            ? encode_comment(bracket)
-            : ` ${encode_comment(`{${semicolon.slice(1)}}`)}`),
+          (match, bracket, semicolon) =>
+            bracket !== undefined
+              ? encode_comment(bracket)
+              : ` ${encode_comment(`{${semicolon.slice(1)}}`)}`,
         )
         .replace(new RegExp(mask(newline_char), 'g'), ' ');
 
@@ -1733,10 +1710,7 @@ const Chess = function (fen) {
       let moves = trim(ms).split(new RegExp(/\s+/));
 
       /* delete empty entries */
-      moves = moves
-        .join(',')
-        .replace(/,,+/g, ',')
-        .split(',');
+      moves = moves.join(',').replace(/,,+/g, ',').split(',');
       let move = '';
 
       for (let half_move = 0; half_move < moves.length - 1; half_move++) {
@@ -1803,9 +1777,8 @@ const Chess = function (fen) {
 
       // allow the user to specify the sloppy move parser to work around over
       // disambiguation bugs in Fritz and Chessbase
-      const sloppy = typeof options !== 'undefined' && 'sloppy' in options
-        ? options.sloppy
-        : false;
+      const sloppy =
+        typeof options !== 'undefined' && 'sloppy' in options ? options.sloppy : false;
 
       let move_obj = null;
 
@@ -1817,10 +1790,9 @@ const Chess = function (fen) {
         /* convert the pretty move object to an ugly move object */
         for (let i = 0, len = moves.length; i < len; i++) {
           if (
-            move.from === algebraic(moves[i].from)
-            && move.to === algebraic(moves[i].to)
-            && (!('promotion' in moves[i])
-              || move.promotion === moves[i].promotion)
+            move.from === algebraic(moves[i].from) &&
+            move.to === algebraic(moves[i].to) &&
+            (!('promotion' in moves[i]) || move.promotion === moves[i].promotion)
           ) {
             move_obj = moves[i];
             break;
@@ -1880,9 +1852,7 @@ const Chess = function (fen) {
     history(options) {
       const reversed_history = [];
       const move_history = [];
-      const verbose = typeof options !== 'undefined'
-        && 'verbose' in options
-        && options.verbose;
+      const verbose = typeof options !== 'undefined' && 'verbose' in options && options.verbose;
 
       while (history.length > 0) {
         reversed_history.push(undo_move());
@@ -1917,17 +1887,16 @@ const Chess = function (fen) {
 
     get_comments() {
       prune_comments();
-      return Object.keys(comments).map((fen) => ({ fen, comment: comments[fen] }));
+      return Object.keys(comments).map(fen => ({ fen, comment: comments[fen] }));
     },
 
     delete_comments() {
       prune_comments();
-      return Object.keys(comments)
-        .map((fen) => {
-          const comment = comments[fen];
-          delete comments[fen];
-          return { fen, comment };
-        });
+      return Object.keys(comments).map(fen => {
+        const comment = comments[fen];
+        delete comments[fen];
+        return { fen, comment };
+      });
     },
   };
 };

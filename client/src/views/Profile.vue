@@ -8,7 +8,9 @@
     <h2 style="color: white">
       {{ capitalizeFirstLetter(currentlyLoggedIn) }}
     </h2>
-    <h4 style="color: white">Experience Score: {{ matches.length }}</h4>
+    <h4 style="color: white">
+      Experience Score: {{ matches !== undefined ? matches.length : '' }}
+    </h4>
 
     <input
       class="btn btn-default login-button"
@@ -74,14 +76,25 @@ export default {
     this.socket = this.$root.socket;
 
     // Fetch:
-    this.socket.emit('getMatchHistory', this.currentlyLoggedIn);
-    this.socket.on('getMatchHistoryResponse', (matchHistory, userId) => {
-      if (this.currentlyLoggedIn === userId) {
-        this.matches = matchHistory;
-        console.log('currentlyLoggedIn: ', this.currentlyLoggedIn);
-        console.log('matches, profile: ', this.matches);
-      }
-    });
+    fetch(`/api/matchHistory/${this.currentlyLoggedIn}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((resp) => {
+        if (!resp.ok) {
+          throw new Error('Unexpected failure not ok');
+        }
+        return resp.json();
+      })
+      .then((data) => {
+        this.matches = data.matchHistory;
+      })
+      .catch((error) => {
+        console.error('Failed unexpectedly');
+        throw error;
+      });
   },
   methods: {
     capitalizeFirstLetter(inputStr) {

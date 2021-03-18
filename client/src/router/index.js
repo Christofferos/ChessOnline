@@ -26,7 +26,14 @@ const router = new VueRouter({
 });
 
 // Setup Authentication guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  // Check if session is valid before routing
+  const { isAuthenticated } = await fetch('/api/isAuthenticated')
+    .then(resp => resp.json())
+    .catch(console.error);
+  store.commit('setIsAuthenticated', isAuthenticated);
+
+  // ...
   if (store.state.isAuthenticated === false && to.path !== '/login' && to.path !== '/signUp') {
     console.info('Unauthenticated user. Redirecting to login page.');
     next('/login');

@@ -329,7 +329,4 @@ exports.backToMenu = (gameId) => {
   exports.io.in(gameId).emit('backToMenuResponse');
 };
 
-exports.getMatchHistory = (userId) => {
-  console.log('MatchHistory obj: ', JSON.stringify(matchHistory));
-  exports.io.emit('getMatchHistoryResponse', matchHistory[userId], userId);
-};
+exports.getMatchHistory = (userId) => matchHistory[userId];

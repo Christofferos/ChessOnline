@@ -17,6 +17,15 @@ router.post('/signUp', (req, res) => {
         console.log('add user: ', req.body.username, ' ', hash);
         statement.run(req.body.username, hash);
         statement.finalize();
+
+        req.session.userID = req.body.username;
+
+        const timeout = setTimeout(() => {
+          req.session.destroy();
+          console.log('destroyed session');
+          clearTimeout(timeout);
+        }, 30000);
+
         res.status(200).json({ success });
       });
     });
@@ -29,6 +38,12 @@ router.post('/signUp', (req, res) => {
 router.put('/signOut', (req, res) => {
   req.session.destroy();
   res.status(200).end();
+});
+
+router.get('/matchHistory/:userId', (req, res) => {
+  const userId = req.params.userId.trim();
+  console.log('userID in getMatchHistory: ', userId);
+  res.status(200).json({ matchHistory: model.getMatchHistory(userId) });
 });
 
 module.exports = { router };

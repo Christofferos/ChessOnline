@@ -10,15 +10,25 @@ const path = require('path'); // helper library for resolving relative paths
 const expressSession = require('express-session');
 const socketIOSession = require('express-socket.io-session');
 const express = require('express');
-const http = require('http');
+// const http = require('http');
+const https = require('https');
+const fs = require('fs');
+
+const helmet = require('helmet');
 
 console.logLevel = 4; // Enables debug output
 const publicPath = path.join(__dirname, '..', '..', 'client', 'dist');
 const port = 8989; // The port that the server will listen to
 const app = express(); // Creates express app
 
-const httpServer = http.Server(app);
-const io = require('socket.io').listen(httpServer); // Creates socket.io app
+const httpsServer = https.createServer(
+  {
+    key: fs.readFileSync('server.key'),
+    cert: fs.readFileSync('server.cert'),
+  },
+  app,
+);
+const io = require('socket.io').listen(httpsServer); // Creates socket.io app
 
 // Setup middleware
 app.use(
@@ -30,6 +40,9 @@ app.use(
     body: { show: true },
   }),
 );
+
+app.use(helmet());
+
 app.use(
   express.json(),
 ); /*
@@ -119,6 +132,6 @@ io.on('connection', (socket) => {
 });
 
 // Start server
-httpServer.listen(port, () => {
-  console.log(`Listening on http://localhost:${port}`);
+httpsServer.listen(port, () => {
+  console.log(`Listening on https://localhost:${port}`);
 });
