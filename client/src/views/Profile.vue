@@ -75,7 +75,6 @@ export default {
     this.$root.socket = io().connect();
     this.socket = this.$root.socket;
 
-    // Fetch:
     fetch(`/api/matchHistory/${this.currentlyLoggedIn}`, {
       method: 'GET',
       headers: {

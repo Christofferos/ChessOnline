@@ -69,11 +69,11 @@ router.post('/authenticate', (req, res) => {
             req.session.destroy();
             console.log('destroyed session');
             clearTimeout(timeout);
-          }, 30000);
+          }, 300000);
 
           /* console.log('Session from /authenticate route:');
           console.log(req.session); */
-          req.session.save((error) => {
+          req.session.save(error => {
             if (error) {
               // console.error(error);
               console.log('Error in /authenticate route');

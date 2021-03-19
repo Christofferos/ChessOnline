@@ -24,7 +24,7 @@ router.post('/signUp', (req, res) => {
           req.session.destroy();
           console.log('destroyed session');
           clearTimeout(timeout);
-        }, 30000);
+        }, 300000);
 
         res.status(200).json({ success });
       });
