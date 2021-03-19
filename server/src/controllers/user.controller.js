@@ -20,11 +20,11 @@ router.post('/signUp', (req, res) => {
 
         req.session.userID = req.body.username;
 
-        const timeout = setTimeout(() => {
+        /* const timeout = setTimeout(() => {
           req.session.destroy();
           console.log('destroyed session');
           clearTimeout(timeout);
-        }, 300000);
+        }, 100000); */
 
         res.status(200).json({ success });
       });

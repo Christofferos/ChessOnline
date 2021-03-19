@@ -65,11 +65,11 @@ router.post('/authenticate', (req, res) => {
           // Update the userID of the currently active session
           req.session.userID = row.username;
 
-          const timeout = setTimeout(() => {
+          /* const timeout = setTimeout(() => {
             req.session.destroy();
             console.log('destroyed session');
             clearTimeout(timeout);
-          }, 300000);
+          }, 100000); */
 
           /* console.log('Session from /authenticate route:');
           console.log(req.session); */
