@@ -73,7 +73,7 @@ router.post('/authenticate', (req, res) => {
 
           /* console.log('Session from /authenticate route:');
           console.log(req.session); */
-          req.session.save(error => {
+          req.session.save((error) => {
             if (error) {
               // console.error(error);
               console.log('Error in /authenticate route');
