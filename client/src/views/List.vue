@@ -78,12 +78,6 @@ export default {
   }),
   created() {
     this.$root.socket.on('newRoom', (newRoom) => {
-      console.log(
-        'NewRoom, before: ',
-        newRoom,
-        ' Client username: ',
-        this.$store.state.cookie.username,
-      );
       if (
         newRoom.player1 === this.$store.state.cookie.username
         || newRoom.player2 === this.$store.state.cookie.username
@@ -96,14 +90,12 @@ export default {
         room => room.player1 === this.$store.state.cookie.username
           || room.player2 === this.$store.state.cookie.username,
       );
-      console.log('after remainingRooms: ', this.rooms);
     });
 
     fetch('/api/userRoomList')
       .then(res => res.json())
       .then((data) => {
         this.rooms = data.list;
-        console.log('fetch userRoomList: ', this.rooms);
       })
       .catch(console.error);
   },
@@ -149,7 +141,6 @@ export default {
         })
         .catch(console.error);
 
-      console.log('gameCode: ', this.gameCode);
     },
   },
 };

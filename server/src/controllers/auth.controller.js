@@ -65,18 +65,9 @@ router.post('/authenticate', (req, res) => {
           // Update the userID of the currently active session
           req.session.userID = row.username;
 
-          /* const timeout = setTimeout(() => {
-            req.session.destroy();
-            console.log('destroyed session');
-            clearTimeout(timeout);
-          }, 100000); */
-
-          /* console.log('Session from /authenticate route:');
-          console.log(req.session); */
-          req.session.save((error) => {
+          req.session.save(error => {
             if (error) {
               // console.error(error);
-              console.log('Error in /authenticate route');
               res.sendStatus(401);
             } else {
               console.debug('Saved session');
@@ -106,10 +97,8 @@ router.post('/authenticate', (req, res) => {
       }
     });
 
-    console.log('sign in as ', username);
     res.status(200).end();
   } else {
-    console.log('user not found');
     res.status(404).end();
   } */
 });

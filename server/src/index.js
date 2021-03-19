@@ -61,7 +61,7 @@ const session = expressSession({
   resave: true,
   saveUninitialized: true,
   rolling: true, // Passiv session invalidering
-  cookie: { maxAge: 3000 }, // Passiv session invalidering
+  cookie: { maxAge: 300000 }, // Passiv session invalidering
   store: new SQLiteStore(),
 });
 app.use(session);
@@ -102,19 +102,19 @@ model.init({ io });
 model.addLiveGame('Live Game 2');  */
 
 // Handle connected socket.io sockets
-io.on('connection', (socket) => {
+io.on('connection', socket => {
   console.log('Connection ... ');
 
   // This function serves to bind socket.io connections to user models
   if (
-    socket.handshake.session.userID
-    && model.findUser(socket.handshake.session.userID) !== undefined
+    socket.handshake.session.userID &&
+    model.findUser(socket.handshake.session.userID) !== undefined
   ) {
     // If the current user already logged in and then reloaded the page
     model.updateUserSocket(socket.handshake.session.userID, socket);
   } else {
     socket.handshake.session.socketID = model.addUnregisteredSocket(socket);
-    socket.handshake.session.save((err) => {
+    socket.handshake.session.save(err => {
       if (err) {
         console.log('Connection error in index.js');
         // console.error(err);
@@ -126,16 +126,18 @@ io.on('connection', (socket) => {
   }
 
   // ### Client listeners: ###
-  socket.on('movePiece', (gameId, startPos, endPos) => model.movePiece(gameId, startPos, endPos));
+  /* socket.on('movePiece', (gameId, startPos, endPos) => model.movePiece(gameId, startPos, endPos)); */
 
-  socket.on('updateTimers', (gameId, timer1, timer2) => model.updateTimers(gameId, timer1, timer2));
+  socket.on('updateTimers', (gameId, timer1, timer2) =>
+    model.updateTimers(gameId, timer1, timer2),
+  );
 
-  socket.on('backToMenu', (gameId) => {
+  socket.on('backToMenu', gameId => {
     model.backToMenu(gameId);
     model.removeLiveGame(gameId);
   });
 
-  socket.on('getMatchHistory', (userId) => model.getMatchHistory(userId));
+  socket.on('getMatchHistory', userId => model.getMatchHistory(userId));
 });
 
 // Start server

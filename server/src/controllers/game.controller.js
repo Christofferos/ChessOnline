@@ -15,7 +15,10 @@ function makeId(length) {
 }
 
 router.post('/newGame', (req, res) => {
-  console.log('new game');
+  if (req.session.username === undefined) {
+    res.status(401).end();
+    return;
+  }
   const gameId = makeId(8);
   model.addLiveGame(gameId, req.session.userID);
   db.serialize(async () => {
@@ -25,8 +28,14 @@ router.post('/newGame', (req, res) => {
   res.json({ gameId });
 });
 
+router.post('/movePiece', (req, res) => {
+  if (req.session.username) {
+    model.movePiece(req.body.gameId, req.body.startPos, req.body.endPos, req.session.username);
+  }
+  res.status(200).end();
+});
+
 router.delete('/removeGame', (req, res) => {
-  console.log('remove game');
   model.removeLiveGame(req.body.id);
 
   db.serialize(async () => {

@@ -20,9 +20,7 @@ router.get('/userRoomList', (req, res) => {
 
 router.get('/room/:room/authorizedToJoin', (req, res) => {
   const game = model.findLiveGame(req.params.room.trim());
-  console.log('Game: ', game);
   if (game === undefined) {
-    console.log('game undefined');
     res.status(404).json({
       msg: `No game with ID: ${req.params.room}`,
       href_roomList: '/roomList',
@@ -41,10 +39,14 @@ router.get('/room/:room/authorizedToJoin', (req, res) => {
  * @returns {void}
  */
 router.get('/room/:room/join', (req, res) => {
+  if (req.session.username === undefined) {
+    res.status(401).end();
+    return;
+  }
+
   const game = model.findLiveGame(req.params.room.trim());
   const user = model.findUser(req.session.userID);
   user.currentRoom = game.id;
-  console.log('Game: ', game);
   user.socket.join(user.currentRoom);
 
   if (game.player2 === '' && game.player1 !== req.session.userID) {

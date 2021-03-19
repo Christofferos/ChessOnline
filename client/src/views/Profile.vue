@@ -70,8 +70,6 @@ export default {
   },
   created() {
     this.currentlyLoggedIn = this.$store.state.cookie.username;
-    console.log('User logged in: ', this.$store.state.cookie.username);
-    console.log('IsAuthenticated: ', this.$store.state.isAuthenticated);
     this.$root.socket = io().connect();
     this.socket = this.$root.socket;
 

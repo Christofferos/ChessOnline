@@ -3,6 +3,7 @@ const User = require('./models/user.model');
 const LiveGame = require('./models/liveGame.model');
 const MatchHistory = require('./models/matchHistory.model');
 const db = require('./database');
+const session = require('express-session');
 
 /**
  * games & users are effectively hash maps with the name of the entry serving as a unique key.
@@ -35,7 +36,7 @@ exports.init = ({ io }) => {
  * @param {SocketIO.Socket} socket - The socket.io socket to add to the pool.
  * @returns {Number} The ID of the socket in the pool of unregistered sockets.
  */
-exports.addUnregisteredSocket = (socket) => {
+exports.addUnregisteredSocket = socket => {
   const socketID = nextUnregisteredSocketID;
   nextUnregisteredSocketID += 1;
 
@@ -43,22 +44,19 @@ exports.addUnregisteredSocket = (socket) => {
   return socketID;
 };
 
-const assignUnregisteredSocket = (socketID) => {
+const assignUnregisteredSocket = socketID => {
   const socket = unregisteredSockets[socketID];
   unregisteredSockets = Object.keys(unregisteredSockets)
-    .filter((sockID) => sockID !== socketID)
+    .filter(sockID => sockID !== socketID)
     .reduce((res, sockID) => ({ ...res, [sockID]: unregisteredSockets[sockID] }), {});
   return socket;
 };
 
 const gamesInit = () => {
   // Fill games with db data
-  console.log('games init');
   db.serialize(() => {
     games = {};
     db.each('SELECT * FROM liveGames', (err, row) => {
-      console.log('gameID: ', row.id);
-      console.log('fen: ', row.currentGame);
       games[row.id] = new LiveGame(
         row.id,
         row.currentGame,
@@ -74,11 +72,9 @@ gamesInit();
 
 const matchHistoryInit = () => {
   // Fill matchHistory with db data
-  console.log('match history init');
   db.serialize(() => {
     matchHistory = {};
     db.each('SELECT * FROM matchHistory', (err, row) => {
-      console.log('match history init');
       if (!matchHistory[row.player1]) {
         matchHistory[row.player1] = [];
       }
@@ -91,23 +87,15 @@ const matchHistoryInit = () => {
       matchHistory[row.player2].push(
         new MatchHistory(row.player1, row.winner, row.nrMoves, row.date),
       );
-      console.log('player1: ', row.player1);
-      console.log('player2: ', row.player2);
-      console.log('winner: ', row.winner);
-      console.log('nrMoves: ', row.nrMoves);
-      console.log('date: ', row.date);
     });
   });
-  console.log('matchHistory: ', matchHistory);
 };
 matchHistoryInit();
 
 const usersInit = async () => {
   // Fill users with db data
-  console.log('users init');
   db.serialize(() => {
     users = {};
-    console.log('how many users are in the server?');
     db.each('SELECT * FROM users', (err, row) => {
       users[row.username] = new User(row.username);
     });
@@ -160,24 +148,24 @@ exports.updateUserSocket = (name, socket) => {
  * @param {String} name - The name of the user.
  * @returns {User}
  */
-exports.findUser = (name) => users[name];
+exports.findUser = name => users[name];
 
 /**
  * Removes the user object with the matching name.
  * @param {String} name - The name of the user
  * @returns {void}
  */
-exports.removeUser = (name) => {
+exports.removeUser = name => {
   users = Object.values(users)
-    .filter((user) => user.name !== name)
+    .filter(user => user.name !== name)
     .reduce((res, user) => ({ ...res, [user.name]: user }), {});
 };
 
 exports.authorizedToJoinGame = (userId, gameId) => {
   if (
-    games[gameId].player2 === ''
-    || userId === games[gameId].player1
-    || userId === games[gameId].player2
+    games[gameId].player2 === '' ||
+    userId === games[gameId].player1 ||
+    userId === games[gameId].player2
   ) {
     return true;
   }
@@ -204,20 +192,19 @@ exports.getLiveGames = () => Object.values(games);
  * Returns LiveGames that user is involved in.
  * @returns {LiveGame[]}
  */
-exports.getLiveGames = (userID) => Object.values(games).filter((game) => {
-  console.log('Game: ', game);
-  console.log('UserID: ', userID);
-  return game.player1 === userID || game.player2 === userID;
-});
+exports.getLiveGames = userID =>
+  Object.values(games).filter(game => {
+    return game.player1 === userID || game.player2 === userID;
+  });
 
 /**
  * Removes the liveGame object with the matching id.
  * @param {String} id - The id of the liveGame.
  * @returns {void}
  */
-exports.removeLiveGame = (id) => {
+exports.removeLiveGame = id => {
   games = Object.values(games)
-    .filter((game) => game.id !== id)
+    .filter(game => game.id !== id)
     .reduce((res, game) => ({ ...res, [game.id]: game }), {});
   exports.io.emit('remainingRooms', games);
 };
@@ -227,17 +214,18 @@ exports.removeLiveGame = (id) => {
  * @param {String} id - The id of the game.
  * @returns {LiveGame}
  */
-exports.findLiveGame = (id) => games[id];
+exports.findLiveGame = id => games[id];
 
-exports.movePiece = (gameId, startPos, endPos) => {
+exports.movePiece = (gameId, startPos, endPos, username) => {
+  console.log('username: ', username);
+  if (username !== games[gameId].player1 && username !== games[gameId].player2) {
+    return;
+  }
+
   const game = games[gameId];
-  console.log(game.gameState.ascii());
-  console.log(startPos, endPos);
   game.gameState.move({ from: startPos, to: endPos });
-  console.log(game.gameState.ascii());
 
   game.fen = game.gameState.fen();
-  console.log('GAME FEN: ', game.fen);
 
   db.serialize(async () => {
     // Update gameState in db
@@ -250,10 +238,10 @@ exports.movePiece = (gameId, startPos, endPos) => {
     db.serialize(async () => {
       let winner;
       if (
-        game.gameState.in_draw()
-        || game.gameState.in_stalemate()
-        || game.gameState.in_threefold_repetition()
-        || game.gameState.insufficient_material()
+        game.gameState.in_draw() ||
+        game.gameState.in_stalemate() ||
+        game.gameState.in_threefold_repetition() ||
+        game.gameState.insufficient_material()
       ) {
         winner = '';
       } else {
@@ -321,7 +309,7 @@ exports.updateTimers = (gameId, timer1, timer2) => {
   });
 };
 
-exports.backToMenu = (gameId) => {
+exports.backToMenu = gameId => {
   db.serialize(async () => {
     const statement = db.prepare('DELETE FROM liveGames WHERE id = (?)');
     statement.run(gameId);
@@ -329,4 +317,4 @@ exports.backToMenu = (gameId) => {
   exports.io.in(gameId).emit('backToMenuResponse');
 };
 
-exports.getMatchHistory = (userId) => matchHistory[userId];
+exports.getMatchHistory = userId => matchHistory[userId];

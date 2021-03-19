@@ -222,26 +222,7 @@ export default {
       this.input = '';
     },
     updatePiecePlacement() {
-      console.log('update piece placement');
       if (this.game !== null) {
-        /* // Timer
-        if (this.opponent) {
-          if (this.setIntervalObj !== null) clearInterval(this.setIntervalObj);
-          this.setIntervalObj = setInterval(() => {
-            if (this.game.fen.split(' ')[1] === 'w') {
-              this.game.timeLeft1 -= 1;
-            } else if (this.game.fen.split(' ')[1] === 'b') {
-              this.game.timeLeft2 -= 1;
-            }
-            this.socket.emit(
-              'updateTimers',
-              this.game.id,
-              this.game.timeLeft1,
-              this.game.timeLeft2,
-            );
-          }, 1000);
-        } */
-
         let row = 0;
         let col = 0;
         this.piecePlacement = [
@@ -255,7 +236,6 @@ export default {
           ['', '', '', '', '', '', '', ''],
         ];
         const pieces = this.game.fen.split(' ')[0];
-        console.log('PIECES: ', pieces);
         for (let i = 0; i < pieces.length; i += 1) {
           if (pieces.charAt(i) === '/') {
             row += 1;
@@ -270,10 +250,6 @@ export default {
             col += Number(pieces.charAt(i));
           }
         }
-        console.log('row: ', row);
-        console.log('column: ', col);
-        console.log(this.piecePlacement);
-        console.log(pieces);
       }
     },
     translateSelectedPiece(row, col) {
@@ -282,15 +258,41 @@ export default {
       return file.toString() + rank.toString();
     },
     checkSelectedPiece(row, col) {
-      console.log(row, col);
-      console.log(this.piecePlacement);
-
       if (this.opponent !== '') {
         if (this.piecePlacement[row][col].match('[rnbqkp]') && this.black) {
           this.selectedPiece = row.toString() + col.toString();
         } else if (this.piecePlacement[row][col].match('[RNBQKP]') && this.black === false) {
           this.selectedPiece = row.toString() + col.toString();
         } else if (this.selectedPiece !== '') {
+
+          
+          fetch('/api/movePiece', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gameId: this.game.id,
+          startPos: this.translateSelectedPiece(
+              this.selectedPiece.charAt(0),
+              this.selectedPiece.charAt(1),
+            ),
+          endPos: this.translateSelectedPiece(row.toString(), col.toString()),
+        }),
+      })
+      .then((resp) => {
+        if (!resp.ok) {
+          throw new Error(`Unexpected failure when joining room: ${this.room}`);
+        }
+        return resp.json();
+      })
+      .then((data) => {
+        console.log(data)
+      })
+      .catch(console.error);
+      
+      
+          /*
           this.socket.emit(
             'movePiece',
             this.game.id,
@@ -299,7 +301,9 @@ export default {
               this.selectedPiece.charAt(1),
             ),
             this.translateSelectedPiece(row.toString(), col.toString()),
-          );
+          ); 
+          */
+          
         }
       }
     },
@@ -324,7 +328,6 @@ export default {
           this.black = true;
         }
         this.updatePiecePlacement();
-        console.log('CREATED PIECE PLACEMENT: ', this.piecePlacement);
       })
       .catch(console.error);
 
@@ -339,8 +342,6 @@ export default {
     });
 
     this.socket.on('getGamePlayers', (players) => {
-      console.log('Player1 & Player2: ', players.player1, players.player2);
-      console.log('Store username: ', this.$store.state.cookie.username);
       if (this.$store.state.cookie.username !== players.player1) {
         this.opponent = players.player1;
         this.black = true;
@@ -352,28 +353,18 @@ export default {
     this.socket.on('movePieceResponse', (newFen, gameOver, draw1, draw2, draw3, draw4) => {
       if (gameOver) {
         if (draw1 || draw2 || draw3 || draw4) {
-          console.log('DRAW!');
           this.endGameMsg = 'Draw!';
         } else if (newFen.split(' ')[1] === 'w' && this.black) {
-          console.log('Check mate!');
-          console.log('You win!');
           this.endGameMsg = 'Check Mate!\n You win';
         } else if (newFen.split(' ')[1] === 'w' && this.black === false) {
-          console.log('Check mate!');
-          console.log('You lose!');
           this.endGameMsg = 'Check Mate!\n You lose';
         } else if (newFen.split(' ')[1] === 'b' && this.black) {
-          console.log('Check mate!');
-          console.log('You lose!');
           this.endGameMsg = 'Check Mate!\n You lose';
         } else if (newFen.split(' ')[1] === 'b' && this.black === false) {
-          console.log('Check mate!');
-          console.log('You win!');
           this.endGameMsg = 'Check Mate!\n You win';
         }
       }
       this.selectedPiece = '';
-      console.log('newFen ', newFen);
       this.game.fen = newFen;
       this.updatePiecePlacement();
     });
