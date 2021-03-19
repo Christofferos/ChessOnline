@@ -15,7 +15,7 @@ function makeId(length) {
 }
 
 router.post('/newGame', (req, res) => {
-  if (req.session.username === undefined) {
+  if (req.session.userID === undefined) {
     res.status(401).end();
     return;
   }
@@ -29,13 +29,24 @@ router.post('/newGame', (req, res) => {
 });
 
 router.post('/movePiece', (req, res) => {
-  if (req.session.username) {
-    model.movePiece(req.body.gameId, req.body.startPos, req.body.endPos, req.session.username);
+  if (req.session.userID) {
+    model.movePiece(req.body.gameId, req.body.startPos, req.body.endPos, req.session.userID);
   }
   res.status(200).end();
 });
 
 router.delete('/removeGame', (req, res) => {
+  if (model.getLiveGame(req.body.id) === undefined || req.session.userID === undefined) {
+    res.status(401).end();
+    return;
+  }
+  if (
+    model.getLiveGame(req.body.id)[0].player1 !== req.session.userID &&
+    model.getLiveGame(req.body.id)[0].player2 !== req.session.userID
+  ) {
+    res.status(401).end();
+    return;
+  }
   model.removeLiveGame(req.body.id);
 
   db.serialize(async () => {

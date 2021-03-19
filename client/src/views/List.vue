@@ -69,6 +69,8 @@
 </template>
 
 <script>
+// import io from 'socket.io-client';
+
 export default {
   name: 'List',
   components: {},
@@ -92,6 +94,7 @@ export default {
       );
     });
 
+    // this.$root.socket = this.$store.state.isAuthenticated ? io().connect() : '';
     fetch('/api/userRoomList')
       .then(res => res.json())
       .then((data) => {
@@ -104,6 +107,7 @@ export default {
       this.$router.push(`/room/${roomName}`);
     },
     newGame() {
+      // this.$root.socket = this.$store.state.isAuthenticated ? io().connect() : '';
       fetch('/api/newGame', {
         method: 'POST',
         headers: {
@@ -127,6 +131,7 @@ export default {
         });
     },
     join() {
+      // this.$root.socket = this.$store.state.isAuthenticated ? io().connect() : '';
       fetch(`/api/room/${this.gameCode}/authorizedToJoin`)
         .then((resp) => {
           if (!resp.ok) {
@@ -140,7 +145,6 @@ export default {
           }
         })
         .catch(console.error);
-
     },
   },
 };

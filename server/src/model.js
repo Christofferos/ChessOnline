@@ -184,6 +184,12 @@ exports.addLiveGame = (id, player1) => {
 
 /**
  * Returns all the LiveGame:s.
+ * @returns {LiveGame}
+ */
+exports.getLiveGame = gameId => Object.values(games).filter(game => game.id === gameId);
+
+/**
+ * Returns all the LiveGame:s.
  * @returns {LiveGame[]}
  */
 exports.getLiveGames = () => Object.values(games);
@@ -219,6 +225,7 @@ exports.findLiveGame = id => games[id];
 exports.movePiece = (gameId, startPos, endPos, username) => {
   console.log('username: ', username);
   if (username !== games[gameId].player1 && username !== games[gameId].player2) {
+    console.log('return');
     return;
   }
 

@@ -70,7 +70,14 @@ export default {
   },
   created() {
     this.currentlyLoggedIn = this.$store.state.cookie.username;
-    this.$root.socket = io().connect();
+    this.$root.socket = this.$store.state.isAuthenticated
+      ? io().connect('https://localhost:8989', {
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: Infinity,
+      })
+      : '';
     this.socket = this.$root.socket;
 
     fetch(`/api/matchHistory/${this.currentlyLoggedIn}`, {
@@ -98,6 +105,7 @@ export default {
       return inputStr.charAt(0).toUpperCase() + inputStr.slice(1);
     },
     signOut() {
+      // this.$root.socket = this.$store.state.isAuthenticated ? io().connect() : '';
       fetch('/api/signOut', {
         method: 'PUT',
         headers: {

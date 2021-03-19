@@ -104,6 +104,9 @@ model.addLiveGame('Live Game 2');  */
 // Handle connected socket.io sockets
 io.on('connection', socket => {
   console.log('Connection ... ');
+  /* socket.emit('reconnect');
+  socket.emit('connect');
+  socket.emit('disconnect'); */
 
   // This function serves to bind socket.io connections to user models
   if (
