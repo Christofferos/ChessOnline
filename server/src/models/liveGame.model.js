@@ -6,7 +6,7 @@ const { Chess } = require('../chess.js');
 class LiveGame {
   constructor(id, fen, player1, player2, timeLeft1, timeLeft2) {
     this.id = id; // (Number)
-    if (fen === undefined) {
+    if (fen === undefined || fen === '' || fen === null) {
       /*
       1. Piece placement (/ === next rank on the board)
       2. Turn

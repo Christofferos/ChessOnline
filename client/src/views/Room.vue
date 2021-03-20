@@ -268,6 +268,7 @@ export default {
           this.selectedPiece = row.toString() + col.toString();
         } else if (this.selectedPiece !== '') {
           // this.$root.socket = this.$store.state.isAuthenticated ? io().connect() : '';
+
           fetch('/api/movePiece', {
             method: 'POST',
             headers: {
@@ -290,8 +291,8 @@ export default {
             })
             .catch(console.error);
 
-          /*
-          this.socket.emit(
+          // TESTING websocket instead of fetch request.
+          /* this.$root.socket.emit(
             'movePiece',
             this.game.id,
             this.translateSelectedPiece(
@@ -299,19 +300,57 @@ export default {
               this.selectedPiece.charAt(1),
             ),
             this.translateSelectedPiece(row.toString(), col.toString()),
-          );
-          */
+          ); */
         }
       }
     },
     backToMenu() {
-      this.socket.emit('backToMenu', this.room);
+      this.$root.socket.emit('backToMenu', this.room);
     },
-    createChannel() {
-      console.log('Create channel');
-      this.$root.socket.on('movePieceResponse', (newFen, gameOver, draw1, draw2, draw3, draw4) => {
-        console.log('INSIDE MOVEPIECEresp.');
+    reconnectionEvents() {
+      //
+      console.log('On create / Reconnecting');
+      //
+      fetch(`/api/room/${this.room}/join`)
+        .then((resp) => {
+          if (!resp.ok) {
+            throw new Error(`Unexpected failure when joining room: ${this.room}`);
+          }
+          return resp.json();
+        })
+        .then((data) => {
+          this.game = data.game;
+          if (data.game.player1 === this.$store.state.cookie.username) {
+            this.opponent = data.game.player2;
+          } else if (data.game.player2 === this.$store.state.cookie.username) {
+            this.opponent = data.game.player1;
+            this.black = true;
+          }
+          this.updatePiecePlacement();
+        })
+        .catch((err) => {
+          console.log('Error in join fetch: ', err);
+        });
 
+      this.$root.socket.on('msg', (msg) => {
+        this.entries = [msg, ...this.entries];
+      });
+
+      this.$root.socket.on('backToMenuResponse', () => {
+        this.redirect('list');
+      });
+
+      this.$root.socket.on('getGamePlayers', (players) => {
+        if (this.$store.state.cookie.username !== players.player1) {
+          this.opponent = players.player1;
+          this.black = true;
+        } else if (this.$store.state.cookie.username !== players.player2) {
+          this.opponent = players.player2;
+        }
+      });
+
+      this.$root.socket.on('movePieceResponse', (newFen, gameOver, draw1, draw2, draw3, draw4) => {
+        console.log('update piece placement');
         if (gameOver) {
           if (draw1 || draw2 || draw3 || draw4) {
             this.endGameMsg = 'Draw!';
@@ -332,73 +371,18 @@ export default {
     },
   },
   created() {
-    // this.$root.socket = this.$store.state.isAuthenticated ? io().connect() : '';
-    fetch(`/api/room/${this.room}/join`)
-      .then((resp) => {
-        if (!resp.ok) {
-          throw new Error(`Unexpected failure when joining room: ${this.room}`);
-        }
-        return resp.json();
-      })
-      .then((data) => {
-        this.game = data.game;
-        if (data.game.player1 === this.$store.state.cookie.username) {
-          this.opponent = data.game.player2;
-        } else if (data.game.player2 === this.$store.state.cookie.username) {
-          this.opponent = data.game.player1;
-          this.black = true;
-        }
-        this.updatePiecePlacement();
-      })
-      .catch(console.error);
+    this.reconnectionEvents();
 
-    this.socket = this.$root.socket;
-
-    this.socket.on('msg', (msg) => {
-      this.entries = [msg, ...this.entries];
+    this.$root.socket.on('connect', () => {
+      console.log('CONNECT/RECONNECT!!!');
+      this.reconnectionEvents();
     });
-
-    this.socket.on('backToMenuResponse', () => {
-      this.redirect('list');
+    this.$root.socket.on('disconnect', () => {
+      console.log('DISCONNECT!!!');
+      this.$root.socket.off('connect_error');
     });
-
-    this.socket.on('getGamePlayers', (players) => {
-      if (this.$store.state.cookie.username !== players.player1) {
-        this.opponent = players.player1;
-        this.black = true;
-      } else if (this.$store.state.cookie.username !== players.player2) {
-        this.opponent = players.player2;
-      }
-    });
-
-    this.$root.socket.on('reconnect', () => {
-      this.$root.socket.emit('subscribe', 'movePieceResponse');
-      console.log('RECONNECTED!!!');
-      //this.createChannel();
-      console.log('Channel created.');
-    });
-    this.$root.socket.on('connect', () => console.log('CONNECT!!!'));
-    this.$root.socket.on('disconnect', () => console.log('DISCONNECT!!!'));
-
-    this.socket.on('movePieceResponse', (newFen, gameOver, draw1, draw2, draw3, draw4) => {
-      console.log('update piece placement');
-
-      if (gameOver) {
-        if (draw1 || draw2 || draw3 || draw4) {
-          this.endGameMsg = 'Draw!';
-        } else if (newFen.split(' ')[1] === 'w' && this.black) {
-          this.endGameMsg = 'Check Mate!\n You win';
-        } else if (newFen.split(' ')[1] === 'w' && this.black === false) {
-          this.endGameMsg = 'Check Mate!\n You lose';
-        } else if (newFen.split(' ')[1] === 'b' && this.black) {
-          this.endGameMsg = 'Check Mate!\n You lose';
-        } else if (newFen.split(' ')[1] === 'b' && this.black === false) {
-          this.endGameMsg = 'Check Mate!\n You win';
-        }
-      }
-      this.selectedPiece = '';
-      this.game.fen = newFen;
-      this.updatePiecePlacement();
+    this.$root.socket.on('connect_error', (err) => {
+      console.log('Conn err: ', err);
     });
   },
   beforeDestroy() {

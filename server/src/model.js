@@ -220,12 +220,33 @@ exports.removeLiveGame = id => {
  * @param {String} id - The id of the game.
  * @returns {LiveGame}
  */
-exports.findLiveGame = id => games[id];
+exports.findLiveGame = id => {
+  const game = games[id];
+  /* const gameWithoutGamestate = {
+    id: game.id,
+    fen: game.fen,
+    player1: game.player1,
+    player2: game.player2,
+    timeLeft1: game.timeLeft1,
+    timeLeft2: game.timeLeft2,
+    messages: game.messages,
+    addMessage: game.addMessage,
+  };
+  console.log('FindLiveGame after reconnection: ', gameWithoutGamestate); */
+  return game;
+};
 
 exports.movePiece = (gameId, startPos, endPos, username) => {
   console.log('username: ', username);
   if (username !== games[gameId].player1 && username !== games[gameId].player2) {
-    console.log('return');
+    console.log(
+      'return. Username: ',
+      username,
+      ' player1: ',
+      games[gameId].player1,
+      ' player2: ',
+      games[gameId].player2,
+    );
     return;
   }
 
@@ -302,7 +323,91 @@ exports.movePiece = (gameId, startPos, endPos, username) => {
     );
 };
 
-exports.updateTimers = (gameId, timer1, timer2) => {
+/* exports.movePieceTest = (gameId, startPos, endPos) => {
+  const game = games[gameId];
+  game.gameState.move({ from: startPos, to: endPos });
+
+  game.fen = game.gameState.fen();
+
+  db.serialize(async () => {
+    // Update gameState in db
+    const statement = db.prepare('UPDATE liveGames SET currentGame = (?) WHERE id = (?)');
+    statement.run(game.fen, gameId);
+  });
+
+  if (game.gameState.game_over()) {
+    // Update matchHistory in db
+    db.serialize(async () => {
+      let winner;
+      if (
+        game.gameState.in_draw() ||
+        game.gameState.in_stalemate() ||
+        game.gameState.in_threefold_repetition() ||
+        game.gameState.insufficient_material()
+      ) {
+        winner = '';
+      } else {
+        winner = game.fen.split(' ')[1] === 'w' ? game.player2 : game.player1;
+      }
+
+      if (!matchHistory[game.player1]) {
+        matchHistory[game.player1] = [];
+      }
+      if (!matchHistory[game.player2]) {
+        matchHistory[game.player2] = [];
+      }
+      matchHistory[game.player1].push(
+        new MatchHistory(
+          game.player2,
+          winner,
+          game.gameState.history().length,
+          new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+        ),
+      );
+      matchHistory[game.player2].push(
+        new MatchHistory(
+          game.player1,
+          winner,
+          game.gameState.history().length,
+          new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+        ),
+      );
+
+      const statement = db.prepare('INSERT INTO matchHistory VALUES (?, ?, ?, ?, ?)');
+      statement.run(
+        game.player1,
+        game.player2,
+        winner,
+        game.gameState.history().length,
+        new Date().toJSON().slice(0, 10).replace(/-/g, '/'),
+      );
+    });
+  }
+
+  exports.io
+    .in(gameId)
+    .emit(
+      'movePieceResponse',
+      game.fen,
+      game.gameState.game_over(),
+      game.gameState.in_draw(),
+      game.gameState.in_stalemate(),
+      game.gameState.in_threefold_repetition(),
+      game.gameState.insufficient_material(),
+    );
+}; */
+
+exports.backToMenu = gameId => {
+  db.serialize(async () => {
+    const statement = db.prepare('DELETE FROM liveGames WHERE id = (?)');
+    statement.run(gameId);
+  });
+  exports.io.in(gameId).emit('backToMenuResponse');
+};
+
+exports.getMatchHistory = userId => matchHistory[userId];
+
+/* exports.updateTimers = (gameId, timer1, timer2) => {
   const game = games[gameId];
   game.timeLeft1 = timer1;
   game.timeLeft2 = timer2;
@@ -314,14 +419,4 @@ exports.updateTimers = (gameId, timer1, timer2) => {
     );
     statement.run(timer1, timer2, gameId);
   });
-};
-
-exports.backToMenu = gameId => {
-  db.serialize(async () => {
-    const statement = db.prepare('DELETE FROM liveGames WHERE id = (?)');
-    statement.run(gameId);
-  });
-  exports.io.in(gameId).emit('backToMenuResponse');
-};
-
-exports.getMatchHistory = userId => matchHistory[userId];
+}; */

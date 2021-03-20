@@ -30,7 +30,7 @@ router.beforeEach(async (to, from, next) => {
   // Check if session is valid before routing
   const { isAuthenticated } = await fetch('/api/isAuthenticated')
     .then(resp => resp.json())
-    .catch(console.error);
+    .catch(err => console.log('Error: ', err));
   store.commit('setIsAuthenticated', isAuthenticated);
 
   // ...

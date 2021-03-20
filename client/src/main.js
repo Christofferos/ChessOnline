@@ -7,18 +7,23 @@ import store from './store';
 Vue.config.productionTip = false;
 
 (async () => {
-  console.log('MAIN');
   // Find out if the user is already logged in
   const { isAuthenticated, username } = await fetch('/api/isAuthenticated')
-    .then(resp => resp.json())
-    .catch(console.error);
+    .then((resp) => {
+      if (!resp.ok) console.log('Resp not ok');
+      return resp.json();
+    })
+    .catch(err => console.log('EErr ', err));
   store.commit('setIsAuthenticated', isAuthenticated);
   store.commit('setUsername', username);
 
-  const VueObj = new Vue({
+  new Vue({
     router,
     store,
-    render: h => h(App),
+    render: (h) => {
+      if (!h) console.log('Unable to render');
+      return h(App);
+    },
     data: {
       socket: isAuthenticated
         ? io().connect('https://localhost:8989', {
@@ -30,8 +35,4 @@ Vue.config.productionTip = false;
         : '',
     },
   }).$mount('#app');
-
-  /* VueObj.socket.on('reconnect', () => console.log('RECONNECTED!!!'));
-  VueObj.socket.on('connect', () => console.log('CONNECT!!!'));
-  VueObj.socket.on('disconnect', () => console.log('DISCONNECT!!!')); */
 })();

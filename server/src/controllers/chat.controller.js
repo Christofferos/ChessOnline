@@ -49,8 +49,14 @@ router.get('/room/:room/join', (req, res) => {
   }
   const game = model.findLiveGame(req.params.room.trim());
   const user = model.findUser(req.session.userID);
+  if (!game || !user) {
+    res.status(401).end();
+    return;
+  }
+
   user.currentRoom = game.id;
   user.socket.join(user.currentRoom);
+  model.addMessage(user.currentRoom, `${user.name} joined the room!`);
 
   if (game.player2 === '' && game.player1 !== req.session.userID) {
     game.player2 = req.session.userID;
@@ -60,20 +66,24 @@ router.get('/room/:room/join', (req, res) => {
     });
     // model.io
     model.io.emit('getGamePlayers', { player1: game.player1, player2: game.player2 });
+    res.status(200).json({
+      game,
+      list: game.messages,
+      msg: `Successfully joined game: ${game.id}`,
+      href_messages: `/room/${game.id}`,
+      href_send_message: `/room/${game.id}/message`,
+      success: true,
+    });
+  } else {
+    res.status(200).json({
+      game,
+      list: game.messages,
+      msg: `Successfully joined game: ${game.id}`,
+      href_messages: `/room/${game.id}`,
+      href_send_message: `/room/${game.id}/message`,
+      success: true,
+    });
   }
-
-  // Send join message
-  model.addMessage(user.currentRoom, `${user.name} joined the room!`);
-
-  // Send http response
-  res.status(200).json({
-    game,
-    list: game.messages,
-    msg: `Successfully joined game: ${game.id}`,
-    href_messages: `/room/${game.id}`,
-    href_send_message: `/room/${game.id}/message`,
-    success: true,
-  });
 });
 
 /**

@@ -7,9 +7,9 @@ const db = new Database(databasePath);
 db.serialize(async () => {
   /* db.run('DROP TABLE IF EXISTS liveGames');
   db.run(
-    'CREATE TABLE liveGames (id TEXT, currentGame TEXT, player1 TEXT,
-      player2 TEXT, timeLeft1 INTEGER, timeLeft2 INTEGER)',
+    'CREATE TABLE liveGames (id TEXT, currentGame TEXT, player1 TEXT, player2 TEXT, timeLeft1 INTEGER, timeLeft2 INTEGER)',
   ); */
+  //
   /* db.run('DROP TABLE IF EXISTS matchHistory');
   db.run(
     'CREATE TABLE matchHistory (player1 TEXT, player2 TEXT,

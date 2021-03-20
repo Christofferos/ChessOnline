@@ -101,12 +101,42 @@ model.init({ io });
 /* model.addLiveGame('Live Game 1');
 model.addLiveGame('Live Game 2');  */
 
+const crypto = require('crypto');
+const randomId = () => crypto.randomBytes(8).toString('hex');
+const { InMemorySessionStore } = require('./sessionStore');
+const sessionStore = new InMemorySessionStore();
+io.use((socket, next) => {
+  const sessionID = socket.handshake.sessionID;
+  if (sessionID) {
+    // find existing session
+    const session = sessionStore.findSession(sessionID);
+    if (session) {
+      socket.sessionID = sessionID;
+      return next();
+    }
+  }
+  // create new session
+  socket.sessionID = randomId();
+  next();
+});
+
 // Handle connected socket.io sockets
 io.on('connection', socket => {
+  // Client connected to server
   console.log('Connection ... ');
-  /* socket.emit('reconnect');
-  socket.emit('connect');
-  socket.emit('disconnect'); */
+  sessionStore.saveSession(socket.sessionID, {
+    connected: true,
+  });
+  socket.on('disconnect', async () => {
+    const matchingSockets = await io.allSockets();
+    const isDisconnected = matchingSockets.size === 0;
+    if (isDisconnected) {
+      // update the connection status of the session
+      sessionStore.saveSession(socket.sessionID, {
+        connected: false,
+      });
+    }
+  });
 
   // This function serves to bind socket.io connections to user models
   if (
@@ -129,11 +159,11 @@ io.on('connection', socket => {
   }
 
   // ### Client listeners: ###
-  /* socket.on('movePiece', (gameId, startPos, endPos) => model.movePiece(gameId, startPos, endPos)); */
-
-  socket.on('updateTimers', (gameId, timer1, timer2) =>
-    model.updateTimers(gameId, timer1, timer2),
-  );
+  // Testing instead of fetch request.
+  /* socket.on('movePiece', (gameId, startPos, endPos) => {
+    console.log('Client reached server');
+    model.movePieceTest(gameId, startPos, endPos);
+  }); */
 
   socket.on('backToMenu', gameId => {
     model.backToMenu(gameId);
@@ -141,6 +171,10 @@ io.on('connection', socket => {
   });
 
   socket.on('getMatchHistory', userId => model.getMatchHistory(userId));
+
+  /* socket.on('updateTimers', (gameId, timer1, timer2) =>
+    model.updateTimers(gameId, timer1, timer2),
+  ); */
 });
 
 // Start server
