@@ -23,7 +23,7 @@
 ### The application remembers your game:
 
 - If the server crashes or goes down, your game will persist and you can return to the game as it
-  was when the server is goes back online.
+  was when the server goes back online.
 
 ## Commands
 
