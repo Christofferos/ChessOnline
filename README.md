@@ -19,6 +19,7 @@
 ### The application uses server side authentication with:
 
 - CA-signed certificate (Secure connection with HTTPS)
+- Article to help you make your own certificate: https://flaviocopes.com/express-https-self-signed-certificate/
 
 ### The application remembers your game:
 
