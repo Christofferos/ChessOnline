@@ -10,7 +10,7 @@
 
 ### The application database is:
 
-- Firebase (enables persistant data)
+- TODO: Firebase (enables persistant data)
 
 ### The application websocket library is:
 
