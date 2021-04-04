@@ -12,6 +12,14 @@
 
 - TODO: Firebase (enables persistant data)
 
+### The application server host is:
+
+- TODO: Heroku
+
+### The application frontend host is:
+
+- TODO: Netlify
+
 ### The application websocket library is:
 
 - SocketIO (enables real time updates)
